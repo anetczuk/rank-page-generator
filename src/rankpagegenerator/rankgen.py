@@ -23,6 +23,13 @@ SCRIPT_DIR = os.path.dirname(__file__)
 
 _LOGGER = logging.getLogger(__name__)
 
+HTML_LICENSE = """ \
+<!--
+File was automatically generated using 'rank-page-generator' project (https://github.com/anetczuk/rank-page-generator).
+Project is distributed under the BSD 3-Clause license.
+-->
+"""
+
 
 def print_info(model_path):
     model: DataFrame = StaticGenerator.load(model_path)
@@ -84,6 +91,8 @@ const DATA = {json_data};
     content = ""
     content += f"""<html>
 <head>
+
+{HTML_LICENSE}
 
 <style>
     .bottomspace {{
@@ -157,7 +166,9 @@ class StaticGenerator:
         content = ""
         content += f""" \
 <html>
-<head></hrad>
+<head>
+{HTML_LICENSE}
+</head>
 <body>
 <div>
 <a href="{self.out_index_path}">{self.label_back_to_main}</a>
