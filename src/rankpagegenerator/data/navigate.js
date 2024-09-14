@@ -52,7 +52,8 @@ function generate_options_table(data_container, options_dict, nav_list) {
     }
     content += "</table>";
     const species = get_values(data_container, ANSWER_COLUMN);
-    content += `<div>found species: ${species.join(", ")}</div>`;
+    content += `<div>found species:</div>`;
+    content += `<div>${species.join(", ")}</div>`;
     return content;
 }
 

@@ -23,7 +23,7 @@ SCRIPT_DIR = os.path.dirname(__file__)
 
 _LOGGER = logging.getLogger(__name__)
 
-HTML_LICENSE = """ \
+HTML_LICENSE = """\
 <!--
 File was automatically generated using 'rank-page-generator' project (https://github.com/anetczuk/rank-page-generator).
 Project is distributed under the BSD 3-Clause license.

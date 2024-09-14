@@ -31,6 +31,7 @@ fi
 
 python3 -m rankpagegenerator.main -la generate \
 								--data "$DATA_PATH" \
+								--embedscripts true \
 								--outdir "$OUT_DIR"
 
 
