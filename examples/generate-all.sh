@@ -11,6 +11,8 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 "$SCRIPT_DIR"/horse/generate.sh
 
+"$SCRIPT_DIR"/furniture/generate.sh
+
 
 ## generate small images
 #$SCRIPT_DIR/generate_small.sh

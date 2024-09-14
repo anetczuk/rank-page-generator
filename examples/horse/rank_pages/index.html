@@ -1,8 +1,29 @@
- <html>
-<head></hrad>
-<body>
-<div>
-<a href="rank/0.html">start</a>
+<html>
+<head>
+
+<style>
+    .bottomspace {
+        margin-bottom: 16px;
+    }
+</style>
+
+
+<script src="navigate.js"></script>
+
+<script>
+const ANSWER_COLUMN = "name";
+const DATA = [{'name': ['horse'], 'horn': ['no'], 'wings': ['no']}, {'name': ['unicorn'], 'horn': ['yes'], 'wings': ['no']}, {'name': ['pegasus'], 'horn': ['no'], 'wings': ['yes']}, {'name': [''], 'horn': ['yes'], 'wings': ['yes']}];
+</script>
+
+
+</head>
+<body onload="navigate([])">
+
+<div class="bottomspace">
+    <a href=''>back to index</a>
 </div>
+
+<div id="container"></div>
+
 </body>
 </html>

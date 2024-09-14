@@ -18,8 +18,19 @@ rm -fr "$OUT_DIR"
 cd "$SCRIPT_DIR/../../src/"
 
 
+DATA_PATH="$SCRIPT_DIR/model.xls"
+
+
+python3 -m rankpagegenerator.main -la info \
+								--data "$DATA_PATH"
+
+if [[ $* == *--info* ]]; then
+	# print only info
+	exit 0
+fi
+
 python3 -m rankpagegenerator.main -la generate \
-								--data "$SCRIPT_DIR/model.xls" \
+								--data "$DATA_PATH" \
 								--outdir "$OUT_DIR"
 
 
