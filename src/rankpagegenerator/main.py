@@ -1,26 +1,10 @@
 #!/usr/bin/python3
 #
-# MIT License
+# Copyright (c) 2024, Arkadiusz Netczuk <dev.arnet@gmail.com>
+# All rights reserved.
 #
-# Copyright (c) 2024 Arkadiusz Netczuk <dev.arnet@gmail.com>
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# This source code is licensed under the BSD 3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
 #
 
 try:
@@ -51,8 +35,9 @@ def process_generate(args):
     _LOGGER.info("starting generator")
     _LOGGER.debug("logging to file: %s", logger.log_file)
     model_path = args.data
+    embed = str(args.embedscripts).lower() != "false"
     output_path = args.outdir
-    generate_pages(model_path, output_path)
+    generate_pages(model_path, embed, output_path)
     return 0
 
 
@@ -67,7 +52,11 @@ def process_info(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="rank-page-generator", prog="rankpagegenerator.main")
+    parser = argparse.ArgumentParser(
+        prog="python3 -m rankpagegenerator.main",
+        description="generate static pages containing rank search based on defined model",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument("-la", "--logall", action="store_true", help="Log all messages")
     # have to be implemented as parameter instead of command (because access to 'subparsers' object)
     parser.add_argument("--listtools", action="store_true", help="List tools")
@@ -78,16 +67,19 @@ def main():
     ## =================================================
 
     description = "generate rank static pages"
-    subparser = subparsers.add_parser("generate", help=description)
+    subparser = subparsers.add_parser(
+        "generate", help=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     subparser.description = description
     subparser.set_defaults(func=process_generate)
     subparser.add_argument("-d", "--data", action="store", required=False, help="Path to data file with model")
+    subparser.add_argument("--embedscripts", action="store", default=False, help="Embed scripts into one file")
     subparser.add_argument("--outdir", action="store", required=True, help="Path to output directory")
 
     ## =================================================
 
     description = "print model info"
-    subparser = subparsers.add_parser("info", help=description)
+    subparser = subparsers.add_parser("info", help=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     subparser.description = description
     subparser.set_defaults(func=process_info)
     subparser.add_argument("-d", "--data", action="store", required=False, help="Path to data file with model")
