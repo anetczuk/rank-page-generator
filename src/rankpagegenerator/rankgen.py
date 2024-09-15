@@ -235,46 +235,45 @@ class StaticGenerator:
 
     @staticmethod
     def load(model_path) -> DataFrame:
-        model: DataFrame = pandas.read_excel(model_path)
-        model = model.astype(str)
+        model_data: DataFrame = load_table_from_excel(model_path, "Data:", assume_default=True)
 
         try:
-            data_desc: DataFrame = pandas.read_excel(model_path, sheet_name=1)
-            data_desc = data_desc.astype(str)
+            data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
+            if data_types is not None:
+                columns = list(data_types.columns)
+                col_id_name = columns[0]
+                col_type_name = columns[1]
+                col_id_list = data_types[col_id_name]
+                for col_id in col_id_list:
+                    column_desc = data_types[data_types[col_id_name] == col_id]
+                    data_type = column_desc[col_type_name]
+                    data_type = data_type.tolist()
+                    data_type = data_type[0]
 
-            columns = list(data_desc.columns)
-            col_id_name = columns[0]
-            col_type_name = columns[1]
-            col_id_list = data_desc[col_id_name]
-            for col_id in col_id_list:
-                column_desc = data_desc[data_desc[col_id_name] == col_id]
-                data_type = column_desc[col_type_name]
-                data_type = data_type.tolist()
-                data_type = data_type[0]
+                    if data_type == "int":
+                        model_column = model_data[col_id]
+                        model_data[col_id] = model_column.astype("int")
+                        continue
 
-                if data_type == "int":
-                    model_column = model[col_id]
-                    model[col_id] = model_column.astype("int")
-                    continue
+                    if data_type == "int range":
+                        model_column = model_data[col_id]
+                        for index, val in enumerate(model_column):
+                            model_column[index] = convert_int_range(val)
+                        continue
 
-                if data_type == "int range":
-                    model_column = model[col_id]
-                    for index, val in enumerate(model_column):
-                        model_column[index] = convert_int_range(val)
-                    continue
+                    if data_type == "str list":
+                        model_column = model_data[col_id]
+                        for index, val in enumerate(model_column):
+                            model_column[index] = convert_str_list(val)
+                        continue
 
-                if data_type == "str list":
-                    model_column = model[col_id]
-                    for index, val in enumerate(model_column):
-                        model_column[index] = convert_str_list(val)
-                    continue
-
-                raise RuntimeError(f"unknown column type {data_type} for column {col_id}")
+                    raise RuntimeError(f"unknown column type {data_type} for column {col_id}")
+            # else no config table
 
         except ValueError:
             _LOGGER.debug("model does not contain data description")
 
-        model = model.replace("nan", "")
+        model = model_data.replace("nan", "")
 
         # column_names = list(model.columns)
         # result_name = column_names[0]
@@ -381,3 +380,57 @@ def to_flat_list(data_list):
             ret_list.append(item)
     ret_list = sorted(ret_list)
     return ret_list
+
+
+def load_table_from_excel(data_path, marker, assume_default=False) -> DataFrame:
+    content: DataFrame = pandas.read_excel(data_path)
+    content = content.astype(str)
+
+    first_col = content.iloc[:, 0]
+    data_item = first_col.loc[first_col == marker]
+    if data_item.empty:
+        # marker not found
+        if assume_default is False:
+            return None
+        model_data = content
+
+    else:
+        # marker found
+
+        data_index = data_item.index.tolist()[0]
+        model_data = content.iloc[data_index + 1 :]
+
+        new_header = model_data.iloc[0]  # grab the first row for the header
+        model_data = model_data[1:]  # take the data less the header row
+        model_data.columns = new_header  # set the header row as the df header
+
+        model_data.reset_index(drop=True, inplace=True)
+
+    # cut bottom
+    model_data = cut_row_nan(model_data)
+    model_data = cut_column_nan(model_data)
+    return model_data
+
+
+def cut_row_nan(content: DataFrame) -> DataFrame:
+    # cut bottom
+    first_col = content.iloc[:, 0]
+    data_item = first_col.loc[first_col == "nan"]
+    if data_item.empty:
+        # no nan data
+        return content
+
+    nan_index = data_item.index.tolist()[0]
+    content = content.iloc[:nan_index]
+    return content
+
+
+def cut_column_nan(content: DataFrame) -> DataFrame:
+    # cut right
+    header_row = content.columns
+    column_names = header_row.to_list()
+    if "nan" not in column_names:
+        return content
+    nan_index = column_names.index("nan")
+    content.drop(content.columns[nan_index:], axis=1, inplace=True)
+    return content
