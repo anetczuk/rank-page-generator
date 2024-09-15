@@ -10,6 +10,7 @@
 import os
 import logging
 import math
+from typing import Dict
 
 import shutil
 import json
@@ -51,9 +52,16 @@ def generate_javascript(model_path, embed, output_path):
     navigation_script_path = os.path.join(SCRIPT_DIR, "data", "navigate.js")
 
     model: DataFrame = StaticGenerator.load(model_path)
+    config: Dict[str, str] = StaticGenerator.load_config(model_path)
 
-    columns = list(model.columns)
-    answer_column_id = columns[0]
+    answer_column_id = None
+    if config is not None:
+        answer_column_id = config["answer_column"]
+    else:
+        columns = list(model.columns)
+        answer_column_id = columns[0]
+
+    _LOGGER.info("answer column id: %s", answer_column_id)
 
     json_data_str = model.to_json(orient="records")
     json_data = json.loads(json_data_str)
@@ -274,15 +282,17 @@ class StaticGenerator:
             _LOGGER.debug("model does not contain data description")
 
         model = model_data.replace("nan", "")
-
-        # column_names = list(model.columns)
-        # result_name = column_names[0]
-        # model_column = model[result_name]
-        # model_column = model_column.astype(str)
-        # model_column = model_column.replace('nan', '')
-        # model[result_name] = model_column.astype(str)
-
         return model
+
+    @staticmethod
+    def load_config(model_path) -> Dict[str, str]:
+        config_data: DataFrame = load_table_from_excel(model_path, "Config:", assume_default=False)
+        if config_data is None:
+            return None
+        field_list = config_data.iloc[:, 0].to_list()
+        value_list = config_data.iloc[:, 1].to_list()
+        config_dict = dict(zip(field_list, value_list))
+        return config_dict
 
     @staticmethod
     def get_total_count(model):
