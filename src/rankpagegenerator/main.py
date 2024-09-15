@@ -22,7 +22,7 @@ import argparse
 import logging
 
 from rankpagegenerator import logger
-from rankpagegenerator.rankgen import generate_pages, print_info
+from rankpagegenerator.generator.jsgen import generate_pages, print_info
 
 
 _LOGGER = logging.getLogger(__name__)

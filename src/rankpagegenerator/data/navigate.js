@@ -53,7 +53,17 @@ function generate_options_table(data_container, options_dict, nav_list) {
     content += "</table>";
     const species = get_values(data_container, ANSWER_COLUMN);
     content += `<div>found species:</div>`;
-    content += `<div>${species.join(", ")}</div>`;
+    content += `<div>`;
+	for (let item_index in species) {
+		let item_data = species[item_index];
+		if ( item_data in ANSWER_PAGES ) {
+			const link_href = ANSWER_PAGES[item_data]
+	    	content += `<span><a href="${link_href}">${item_data}</a></span>\n`;
+		} else {
+		    content += `<span>${item_data}</span>\n`;
+		}
+    }
+    content += `</div>`;
     return content;
 }
 
