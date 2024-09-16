@@ -16,8 +16,12 @@ from pandas.core.frame import DataFrame
 
 from rankpagegenerator.utils import write_data
 from rankpagegenerator.generator.utils import HTML_LICENSE, convert_str_list, convert_int_range
-from rankpagegenerator.generator.dataframe import load_table_from_excel, to_dict_from_2col, to_flat_list,\
-    to_dict_col_vals
+from rankpagegenerator.generator.dataframe import (
+    load_table_from_excel,
+    to_dict_from_2col,
+    to_flat_list,
+    to_dict_col_vals,
+)
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -196,6 +200,8 @@ class StaticGenerator:
                     value = convert_value(value, "str list", sort_list=False)
                     row_data.iloc[1] = value
         order_dict = to_dict_from_2col(order_data)
+        if order_dict is None:
+            order_dict = {}
         return order_dict
 
     @staticmethod
@@ -219,6 +225,7 @@ class StaticGenerator:
                     values_list = model_data[col_name].tolist()
                     values_list = to_flat_list(values_list)
                     cat_values_set = set(values_list)
+                    cat_values_set = sorted(cat_values_set)
 
                     row_values = row_data.iloc[row_index]
                     col_weights_dict = calculate_weights_binary(row_values, cat_values_set)
@@ -338,7 +345,7 @@ def calculate_single_weight(order_item, row_values, order_values):
     item_indexes = get_indexes([order_item], order_values)
     row_indexes = get_indexes(row_values, order_values)
     item_index = item_indexes[0]
-    distance = min( [ abs(item_index - row_index) for row_index in row_indexes ] )
+    distance = min([abs(item_index - row_index) for row_index in row_indexes])
     order_len = len(order_values)
     return 1.0 - distance / order_len
 

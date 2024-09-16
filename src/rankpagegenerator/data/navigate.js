@@ -32,6 +32,7 @@ function navigate(nav_data = {}) {
 
 function generate_options_table(nav_data) {
 	let content = "";
+	content += `<div style="font-weight: bold;">Parametry:</div>`;
 	//content += `<div class="bottomspace">navigation: ${nav_data.join(" | ")}</div>`;
 	content += `<table class="bottomspace">`;
     for (let option_key in VALUES_DICT) {
@@ -78,12 +79,14 @@ function generate_options_table(nav_data) {
 /// calculate and present weighted answers
 function generate_results(nav_data) {
 	let content = "";
-    content += `<div style="font-weight: bold;">Found species:</div>`;
+    content += `<div style="font-weight: bold;">Wyniki:</div>`;
+    content += `<div style="margin-left: 4px;">`;
     if (Object.keys(nav_data).length < 1) {
 		content += find_simple_answer();
     } else {
 		content += find_weighted_answer(nav_data);
 	}
+    content += `</div>`;
     return content;
 }
 

@@ -5,26 +5,22 @@ Project is distributed under the BSD 3-Clause license.
 -->
 <head>
 
-<style>
-    .bottomspace {
-        margin-bottom: 16px;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
 
 <script>
 const ANSWER_COLUMN = "name";
-const DATA = [{'name': ['table'], 'num_of_legs': ['4'], 'back': ['no']}, {'name': ['chair'], 'num_of_legs': ['4'], 'back': ['yes']}, {'name': ['stool'], 'num_of_legs': ['3'], 'back': ['no']}];
-const ANSWER_PAGES = {'table': 'pages/0.html', 'chair': 'pages/1.html', 'stool': 'pages/2.html'};
-const ORDER_DICT = {};
+const VALUES_DICT = {'name': ['chair', 'stool', 'table'], 'num_of_legs': ['3', '4'], 'back': ['no', 'yes']};
+const DETAILS_PAGE = {'table': 'pages/0.html', 'chair': 'pages/1.html', 'stool': 'pages/2.html'};
+const WEIGHTS_DICT = {'table': {'num_of_legs': {'3': 0.0, '4': 1.0}, 'back': {'no': 1.0, 'yes': 0.0}}, 'chair': {'num_of_legs': {'3': 0.0, '4': 1.0}, 'back': {'no': 0.0, 'yes': 1.0}}, 'stool': {'num_of_legs': {'3': 1.0, '4': 0.0}, 'back': {'no': 1.0, 'yes': 0.0}}};
 </script>
 
 <script src="navigate.js"></script>
 
 </head>
-<body onload="navigate([])">
+<body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href=''>back to index</a>
+    <a href='?'>reset</a>
 </div>
 
 <div id="container"></div>

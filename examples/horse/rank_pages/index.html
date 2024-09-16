@@ -5,26 +5,22 @@ Project is distributed under the BSD 3-Clause license.
 -->
 <head>
 
-<style>
-    .bottomspace {
-        margin-bottom: 16px;
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
 
 <script>
 const ANSWER_COLUMN = "name";
-const DATA = [{'name': ['horse'], 'horn': ['no'], 'wings': ['no']}, {'name': ['unicorn'], 'horn': ['yes'], 'wings': ['no']}, {'name': ['pegasus'], 'horn': ['no'], 'wings': ['yes']}];
-const ANSWER_PAGES = {'horse': 'pages/0.html', 'unicorn': 'pages/1.html', 'pegasus': 'pages/2.html'};
-const ORDER_DICT = {};
+const VALUES_DICT = {'name': ['horse', 'pegasus', 'unicorn'], 'horn': ['no', 'yes'], 'wings': ['no', 'yes']};
+const DETAILS_PAGE = {'horse': 'pages/0.html', 'unicorn': 'pages/1.html', 'pegasus': 'pages/2.html'};
+const WEIGHTS_DICT = {'horse': {'horn': {'no': 1.0, 'yes': 0.0}, 'wings': {'no': 1.0, 'yes': 0.0}}, 'unicorn': {'horn': {'no': 0.0, 'yes': 1.0}, 'wings': {'no': 1.0, 'yes': 0.0}}, 'pegasus': {'horn': {'no': 1.0, 'yes': 0.0}, 'wings': {'no': 0.0, 'yes': 1.0}}};
 </script>
 
 <script src="navigate.js"></script>
 
 </head>
-<body onload="navigate([])">
+<body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href=''>back to index</a>
+    <a href='?'>reset</a>
 </div>
 
 <div id="container"></div>

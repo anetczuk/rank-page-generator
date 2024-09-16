@@ -1,0 +1,20 @@
+.mainpage a { color: blue; }         /* Unvisited link  */
+.mainpage a:visited { color: blue; } /* Visited link    */
+.mainpage a:hover { color: blue; }   /* Mouse over link */
+.mainpage a:active { color: blue; }  /* Selected link   */
+
+.bottomspace {
+    margin-bottom: 16px;
+}
+
+.activeoption {
+    color: red !important;
+}
+
+
+.characteristics th {
+    text-align: left;
+}
+.empty {
+    color: red;
+}

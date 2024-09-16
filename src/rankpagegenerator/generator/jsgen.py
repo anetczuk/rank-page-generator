@@ -19,7 +19,6 @@ from rankpagegenerator.utils import write_data, read_data
 from rankpagegenerator.generator.staticgen import StaticGenerator
 from rankpagegenerator.generator.utils import HTML_LICENSE, dict_to_html_table
 from rankpagegenerator.data import DATA_DIR
-from rankpagegenerator.generator.dataframe import to_dict_col_vals
 
 
 SCRIPT_DIR = os.path.dirname(__file__)

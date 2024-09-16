@@ -88,8 +88,8 @@ def to_dict_col_vals(content: DataFrame):
         values_list = content[col_name].tolist()
         values_list = to_flat_list(values_list)
         cat_values_set = set(values_list)
-        cat_values_set = sorted(cat_values_set)
-        ret_dict[col_name] = cat_values_set
+        cat_values_list = sorted(cat_values_set)
+        ret_dict[col_name] = cat_values_list
     return ret_dict
 
 

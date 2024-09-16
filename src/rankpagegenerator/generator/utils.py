@@ -30,7 +30,7 @@ def dict_to_html_table(data_dict, header=True):
     content = ""
     content += """<table>\n"""
     if header:
-        content += """<tr> <th>cecha:</th> <th>wartość:</th> </tr>\n"""
+        content += """<tr> <th>Parametr:</th> <th>Wartość:</th> </tr>\n"""
     for key, val in data_dict.items():
         val_str = ""
         if isinstance(val, list):
