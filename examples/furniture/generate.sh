@@ -44,3 +44,19 @@ if [[ "$result" != "" ]]; then
 fi
 # else: # empty string - no errors
 echo "no broken links found"
+
+
+## generate image from html
+echo -e "\ntaking screenshots"
+PAGE_PATH="$OUT_DIR/index.html"
+if [ -f "$PAGE_PATH" ]; then
+	chromium --headless "file://$PAGE_PATH" --screenshot=$OUT_DIR/main-page.png
+	chromium --headless "file://${PAGE_PATH}?num_of_legs=3&back=yes" --screenshot=$OUT_DIR/main-page-filter.png
+fi
+PAGE_PATH="$OUT_DIR/pages/0.html"
+if [ -f "$PAGE_PATH" ]; then
+	chromium --headless "file://$PAGE_PATH" --screenshot=$OUT_DIR/sub-page.png
+fi
+
+
+echo -e "\ngeneration completed"
