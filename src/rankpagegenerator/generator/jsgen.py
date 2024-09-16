@@ -43,6 +43,7 @@ def generate_javascript(model_path, embed, output_path):
     os.makedirs(output_path, exist_ok=True)
 
     navigation_script_path = os.path.join(DATA_DIR, "navigate.js")
+    css_styles_path = os.path.join(DATA_DIR, "styles.css")
 
     model: DataFrame = StaticGenerator.load(model_path)
     config: Dict[str, str] = StaticGenerator.load_config(model_path)
@@ -95,30 +96,19 @@ const WEIGHTS_DICT = {weights_dict};"""
 
 <script src="navigate.js"></script>"""
 
+    shutil.copy(css_styles_path, output_path, follow_symlinks=True)
+
     content = ""
     content += f"""<html>
 {HTML_LICENSE}
 <head>
 
-<style>
-    a {{ color: blue; }}         /* Unvisited link  */
-    a:visited {{ color: blue; }} /* Visited link    */
-    a:hover {{ color: blue; }}   /* Mouse over link */
-    a:active {{ color: blue; }}  /* Selected link   */
-
-    .bottomspace {{
-        margin-bottom: 16px;
-    }}
-
-    .activeoption {{
-        color: red !important;
-    }}
-</style>
+<link rel="stylesheet" type="text/css" href="styles.css">
 
 {page_script_content}
 
 </head>
-<body onload="start_navigate()">
+<body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
     <a href='?'>reset</a>
@@ -174,17 +164,7 @@ def generate_answer_details_pages(model_json, details_json, output_path):
         content = f"""<html>
 {HTML_LICENSE}
 <head>
-<style>
-.characteristics th {{
-    text-align: left;
-}}
-.empty {{
-    color: red;
-}}
-.bottomspace {{
-    margin-bottom: 16px;
-}}
-</style>
+<link rel="stylesheet" type="text/css" href="../styles.css">
 </head>
 <body>
 <div>

@@ -78,7 +78,7 @@ function generate_options_table(nav_data) {
 /// calculate and present weighted answers
 function generate_results(nav_data) {
 	let content = "";
-    content += `<div>found species:</div>`;
+    content += `<div style="font-weight: bold;">Found species:</div>`;
     if (Object.keys(nav_data).length < 1) {
 		content += find_simple_answer();
     } else {
