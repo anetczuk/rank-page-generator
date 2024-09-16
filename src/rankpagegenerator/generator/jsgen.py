@@ -55,19 +55,14 @@ def generate_javascript(model_path, embed, output_path):
 
     _LOGGER.info("answer column id: %s", answer_column_id)
 
-    json_data_str = model.to_json(orient="records")
-    json_data = json.loads(json_data_str)
-    # ensure every value is list (makes life easier in java script)
-    for row_dict in json_data:
-        for key, val in row_dict.items():
-            if not isinstance(val, list):
-                row_dict[key] = [val]
-
-    answer_page_dir = generate_answer_details_pages(model, output_path)
+    model_json = to_json(model)
+    answer_details = StaticGenerator.load_details(model_path)
+    answer_json = to_json(answer_details)
+    answer_page_dir = generate_answer_details_pages(model_json, answer_json, output_path)
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
-const DATA = {json_data};
+const DATA = {model_json};
 const ANSWER_PAGES = {answer_page_dir};"""
 
     page_script_content = ""
@@ -123,26 +118,58 @@ const ANSWER_PAGES = {answer_page_dir};"""
     write_data(out_index_path, content)
 
 
-def generate_answer_details_pages(model, output_path):
+def generate_answer_details_pages(model_json, answer_json, output_path):
     ## generate answer pages
     ret_dict = {}
     pages_dir = "pages"
     out_pages_path = os.path.join(output_path, pages_dir)
     os.makedirs(out_pages_path, exist_ok=True)
     answer_counter = 0
-    for _index, row in model.iterrows():
-        field_list = model.columns.to_list()
-        value_list = row.iloc[:].to_list()
+    rows_num = len(model_json)
+    for row_dict in model_json:
+        field_list = list(row_dict.keys())      # column names
+        value_list = list(row_dict.values())    # values
         data_dict = dict(zip(field_list, value_list))
-        description = dict_to_html_table(data_dict)
-        content = ""
-        content += f"""<html>
+
+        answer = value_list[0][0]
+        details_dict = None
+        for item in answer_json:
+            item_detail = list(item.values()) # list of lists
+            if item_detail[0][0] == answer:
+                details_dict = item
+                details_dict.pop(next(iter(details_dict)))  # remove first key
+                data_dict.update(details_dict)
+                break
+
+        characteristics = dict_to_html_table(data_dict)
+
+        prev_link = "prev"
+        if answer_counter > 0:
+            prev_href = f"{answer_counter - 1}.html"
+            prev_link = f"""<a href="{prev_href}">{prev_link}</a>"""
+        next_link = "next"
+        if answer_counter < rows_num - 1:
+            next_href = f"{answer_counter + 1}.html"
+            next_link = f"""<a href="{next_href}">{next_link}</a>"""
+
+        content = f"""<html>
 {HTML_LICENSE}
 <head>
+<style>
+.characteristics th {{
+    text-align: left;
+}}
+.empty {{
+    color: red;
+}}
+</style>
 </head>
 <body>
 <div>
-{description}
+<span>{prev_link}</span> <span>{next_link}</span>
+</div>
+<div class="characteristics">
+{characteristics}
 </div>
 </body>
 </html>
@@ -153,8 +180,20 @@ def generate_answer_details_pages(model, output_path):
         write_data(out_answer_path, content)
         answer_counter += 1
 
-        answer = value_list[0]
         rel_path = os.path.join(pages_dir, page_name)
         ret_dict[answer] = rel_path
 
     return ret_dict
+
+
+def to_json(content: DataFrame):
+    if content is None:
+        return None
+    json_data_str = content.to_json(orient="records")
+    json_data = json.loads(json_data_str)
+    # ensure every value is list (makes life easier in java script)
+    for row_dict in json_data:
+        for key, val in row_dict.items():
+            if not isinstance(val, list):
+                row_dict[key] = [val]
+    return json_data
