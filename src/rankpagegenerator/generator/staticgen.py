@@ -171,7 +171,7 @@ class StaticGenerator:
         return to_dict_from_2col(config_data)
 
     @staticmethod
-    def load_order(model_path):
+    def load_weights(model_path):
         order_data: DataFrame = load_table_from_excel(model_path, "Order:", assume_default=False)
         data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
         data_type_dict = to_dict_from_2col(data_types)
@@ -184,14 +184,48 @@ class StaticGenerator:
                 if data_type:
                     # found type
                     value = row_data.iloc[1]
-                    value = convert_value(value, data_type)
+                    value = convert_value(value, data_type, sort_list=False)
                     row_data.iloc[1] = value
                 else:
                     # convert to string list
                     value = row_data.iloc[1]
-                    value = convert_value(value, "str list")
+                    value = convert_value(value, "str list", sort_list=False)
                     row_data.iloc[1] = value
-        return order_data
+        order_dict = to_dict_from_2col(order_data)
+
+        model_data: DataFrame = StaticGenerator.load(model_path)
+        ## multi dict: [answer, category, cat. value, weight value]
+        weights_dict = {}
+
+        header_row = model_data.columns
+        column_names = header_row.to_list()
+        for _index, row_data in model_data.iterrows():
+            answer_id = row_data.iloc[0]
+            weights_dict[answer_id] = {}
+            row_length = len(row_data)
+            for row_index in range(1, row_length):
+                col_name = column_names[row_index]
+                order_values = order_dict.get(col_name)
+                if order_values is None:
+                    # order not specified for given category - use binary rule
+                    values_list = model_data[col_name].tolist()
+                    values_list = to_flat_list(values_list)
+                    cat_values_set = set(values_list)
+
+                    row_values = row_data.iloc[row_index]
+                    col_weights_dict = calculate_weights_binary(row_values, cat_values_set)
+                    weights_dict[answer_id][col_name] = col_weights_dict
+                    continue
+
+                try:
+                    row_values = row_data.iloc[row_index]
+                    col_weights_dict = calculate_weights(row_values, order_values)
+                    weights_dict[answer_id][col_name] = col_weights_dict
+                except ValueError:
+                    _LOGGER.exception("unable to find row value in order list '%s' (%s)", col_name, order_values)
+                    raise
+
+        return weights_dict
 
     @staticmethod
     def get_total_count(model):
@@ -260,15 +294,17 @@ def convert_column(data_frame: DataFrame, col_id: str, data_type: str):
         model_column[index] = convert_value(val, data_type)
 
 
-def convert_value(value, data_type: str):
+def convert_value(value, data_type: str, sort_list=None):
     if data_type == "int":
         return int(value)
     if data_type == "int range":
         return convert_int_range(value)
     if data_type == "str list":
-        return convert_str_list(value)
+        sort_content = sort_list if sort_list is not None else True
+        return convert_str_list(value, sort_list=sort_content)
     if data_type == "link list":
-        return convert_str_list(value, sort_list=False)
+        sort_content = sort_list if sort_list is not None else False
+        return convert_str_list(value, sort_list=sort_content)
     raise RuntimeError(f"unknown data type '{data_type}'")
 
 
@@ -281,3 +317,48 @@ def to_flat_list(data_list):
             ret_list.append(item)
     ret_list = sorted(ret_list)
     return ret_list
+
+
+def calculate_weights_binary(row_values, possible_values):
+    if not isinstance(row_values, list):
+        row_values = [row_values]
+    weight_dict = {}
+    for poss_item in possible_values:
+        weight = 0.0
+        if poss_item in row_values:
+            weight = 1.0
+        weight_dict[poss_item] = weight
+    return weight_dict
+
+
+def calculate_weights(row_values, order_values):
+    if not isinstance(row_values, list):
+        row_values = [row_values]
+    weight_dict = {}
+    for order_item in order_values:
+        weight_dict[order_item] = calculate_single_weight(order_item, row_values, order_values)
+    return weight_dict
+
+
+def calculate_single_weight(order_item, row_values, order_values):
+    if order_item in row_values:
+        return 1.0
+    item_indexes = get_indexes([order_item], order_values)
+    row_indexes = get_indexes(row_values, order_values)
+    item_index = item_indexes[0]
+    distance = min( [ abs(item_index - row_index) for row_index in row_indexes ] )
+    order_len = len(order_values)
+    return 1.0 - distance / order_len
+
+
+def get_indexes(row_values, order_values):
+    index_list = []
+    for row_item in row_values:
+        item_index = order_values.index(row_item)
+        # try:
+        #     item_index = order_values.index(row_item)
+        # except ValueError:
+        #     _LOGGER.exception("unable to find value '%s' in list '%s'", row_item, order_values)
+        #     raise
+        index_list.append(item_index)
+    return index_list

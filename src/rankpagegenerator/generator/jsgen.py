@@ -60,15 +60,15 @@ def generate_javascript(model_path, embed, output_path):
     details_json = to_json(answer_details)
     details_page_dir = generate_answer_details_pages(model_json, details_json, output_path)
 
-    order_dict = StaticGenerator.load_order(model_path)
-    if order_dict is None:
-        order_dict = {}
+    weights_dict = StaticGenerator.load_weights(model_path)
+    if weights_dict is None:
+        weights_dict = {}
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
 const DATA = {model_json};
-const ANSWER_PAGES = {details_page_dir};
-const ORDER_DICT = {order_dict};"""
+const DETAILS_PAGE = {details_page_dir};
+const WEIGHTS_DICT = {weights_dict};"""
 
     page_script_content = ""
     if embed:
