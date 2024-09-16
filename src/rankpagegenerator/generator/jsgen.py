@@ -57,13 +57,18 @@ def generate_javascript(model_path, embed, output_path):
 
     model_json = to_json(model)
     answer_details = StaticGenerator.load_details(model_path)
-    answer_json = to_json(answer_details)
-    answer_page_dir = generate_answer_details_pages(model_json, answer_json, output_path)
+    details_json = to_json(answer_details)
+    details_page_dir = generate_answer_details_pages(model_json, details_json, output_path)
+
+    order_dict = StaticGenerator.load_order(model_path)
+    if order_dict is None:
+        order_dict = {}
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
 const DATA = {model_json};
-const ANSWER_PAGES = {answer_page_dir};"""
+const ANSWER_PAGES = {details_page_dir};
+const ORDER_DICT = {order_dict};"""
 
     page_script_content = ""
     if embed:
@@ -118,7 +123,9 @@ const ANSWER_PAGES = {answer_page_dir};"""
     write_data(out_index_path, content)
 
 
-def generate_answer_details_pages(model_json, answer_json, output_path):
+def generate_answer_details_pages(model_json, details_json, output_path):
+    if details_json is None:
+        details_json = {}
     ## generate answer pages
     ret_dict = {}
     pages_dir = "pages"
@@ -127,14 +134,14 @@ def generate_answer_details_pages(model_json, answer_json, output_path):
     answer_counter = 0
     rows_num = len(model_json)
     for row_dict in model_json:
-        field_list = list(row_dict.keys())      # column names
-        value_list = list(row_dict.values())    # values
+        field_list = list(row_dict.keys())  # column names
+        value_list = list(row_dict.values())  # values
         data_dict = dict(zip(field_list, value_list))
 
         answer = value_list[0][0]
         details_dict = None
-        for item in answer_json:
-            item_detail = list(item.values()) # list of lists
+        for item in details_json:
+            item_detail = list(item.values())  # list of lists
             if item_detail[0][0] == answer:
                 details_dict = item
                 details_dict.pop(next(iter(details_dict)))  # remove first key
@@ -162,10 +169,16 @@ def generate_answer_details_pages(model_json, answer_json, output_path):
 .empty {{
     color: red;
 }}
+.bottomspace {{
+    margin-bottom: 16px;
+}}
 </style>
 </head>
 <body>
 <div>
+<a href="../index.html">back to index</a>
+</div>
+<div class="bottomspace">
 <span>{prev_link}</span> <span>{next_link}</span>
 </div>
 <div class="characteristics">

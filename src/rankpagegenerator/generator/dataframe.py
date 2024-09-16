@@ -7,7 +7,6 @@
 # LICENSE file in the root directory of this source tree.
 #
 
-import os
 import logging
 
 import pandas
@@ -70,3 +69,12 @@ def cut_column_nan(content: DataFrame) -> DataFrame:
     nan_index = column_names.index("nan")
     content.drop(content.columns[nan_index:], axis=1, inplace=True)
     return content
+
+
+def to_dict_from_2col(content: DataFrame):
+    if content is None:
+        return None
+    field_list = content.iloc[:, 0].to_list()
+    value_list = content.iloc[:, 1].to_list()
+    config_dict = dict(zip(field_list, value_list))
+    return config_dict

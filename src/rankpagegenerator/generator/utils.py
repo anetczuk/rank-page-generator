@@ -49,3 +49,41 @@ def convert_value(val):
     if validators.url(val):
         return f"""<a href="{val}">{val}</a>"""
     return str(val)
+
+
+def convert_int_range(data: str):
+    ret_list = []
+    items = data.split(",")
+    for item in items:
+        if "-" not in item:
+            # single number
+            ret_list.append(int(item))
+            continue
+        int_range = item.split("-")
+        if len(int_range) != 2:
+            raise RuntimeError("invalid range")
+        min_val = int(int_range[0])
+        max_val = int(int_range[1]) + 1
+        values = range(min_val, max_val)
+        ret_list.extend(values)
+    ret_list = list(set(ret_list))
+    ret_len = len(ret_list)
+    if ret_len < 1:
+        raise RuntimeError("invalid range")
+    if ret_len == 1:
+        return ret_list[0]
+    return ret_list
+
+
+def convert_str_list(data: str, sort_list=True):
+    items = data.split(",")
+    ret_list = list(dict.fromkeys(items))  # set changes order of items
+    ret_len = len(ret_list)
+    if ret_len < 1:
+        raise RuntimeError("invalid range")
+    if ret_len == 1:
+        return ret_list[0]
+    ret_list = [item.strip() for item in ret_list]
+    if sort_list:
+        ret_list = sorted(ret_list)
+    return ret_list

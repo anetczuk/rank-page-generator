@@ -15,8 +15,8 @@ from typing import Dict
 from pandas.core.frame import DataFrame
 
 from rankpagegenerator.utils import write_data
-from rankpagegenerator.generator.utils import HTML_LICENSE
-from rankpagegenerator.generator.dataframe import load_table_from_excel
+from rankpagegenerator.generator.utils import HTML_LICENSE, convert_str_list, convert_int_range
+from rankpagegenerator.generator.dataframe import load_table_from_excel, to_dict_from_2col
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -151,25 +151,47 @@ class StaticGenerator:
     def load(model_path) -> DataFrame:
         model_data: DataFrame = load_table_from_excel(model_path, "Data:", assume_default=True)
         data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
-        apply_data_types(model_data, data_types)
+        data_type_dict = to_dict_from_2col(data_types)
+        apply_data_types(model_data, data_type_dict)
         return model_data
+
+    @staticmethod
+    def load_details(model_path) -> DataFrame:
+        details_data: DataFrame = load_table_from_excel(model_path, "Details:", assume_default=False)
+        data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
+        data_type_dict = to_dict_from_2col(data_types)
+        apply_data_types(details_data, data_type_dict)
+        return details_data
 
     @staticmethod
     def load_config(model_path) -> Dict[str, str]:
         config_data: DataFrame = load_table_from_excel(model_path, "Config:", assume_default=False)
         if config_data is None:
             return None
-        field_list = config_data.iloc[:, 0].to_list()
-        value_list = config_data.iloc[:, 1].to_list()
-        config_dict = dict(zip(field_list, value_list))
-        return config_dict
+        return to_dict_from_2col(config_data)
 
     @staticmethod
-    def load_details(model_path) -> DataFrame:
-        details_data: DataFrame = load_table_from_excel(model_path, "Details:", assume_default=False)
+    def load_order(model_path):
+        order_data: DataFrame = load_table_from_excel(model_path, "Order:", assume_default=False)
         data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
-        apply_data_types(details_data, data_types)
-        return details_data
+        data_type_dict = to_dict_from_2col(data_types)
+
+        if data_type_dict:
+            for row in order_data.iterrows():
+                row_data = row[1]
+                column_id = row_data.iloc[0]
+                data_type = data_type_dict.get(column_id)
+                if data_type:
+                    # found type
+                    value = row_data.iloc[1]
+                    value = convert_value(value, data_type)
+                    row_data.iloc[1] = value
+                else:
+                    # convert to string list
+                    value = row_data.iloc[1]
+                    value = convert_value(value, "str list")
+                    row_data.iloc[1] = value
+        return order_data
 
     @staticmethod
     def get_total_count(model):
@@ -221,86 +243,33 @@ def gen_index_page(output_path):
     write_data(output_path, content)
 
 
-def apply_data_types(data_frame: DataFrame, data_types: DataFrame):
+def apply_data_types(data_frame: DataFrame, data_types: dict):
     if data_types is None:
         return
 
-    columns = list(data_types.columns)
-    col_id_name = columns[0]
-    col_type_name = columns[1]
-    col_id_list = data_types[col_id_name]
-    for col_id in col_id_list:
-        column_desc = data_types[data_types[col_id_name] == col_id]
-        data_type = column_desc[col_type_name]
-        data_type = data_type.tolist()
-        data_type = data_type[0]
-
+    for col_id, data_type in data_types.items():
         if col_id not in data_frame:
             # column not exists
             continue
-
-        if data_type == "int":
-            model_column = data_frame[col_id]
-            data_frame[col_id] = model_column.astype("int")
-            continue
-
-        if data_type == "int range":
-            model_column = data_frame[col_id]
-            for index, val in enumerate(model_column):
-                model_column[index] = convert_int_range(val)
-            continue
-
-        if data_type == "str list":
-            model_column = data_frame[col_id]
-            for index, val in enumerate(model_column):
-                model_column[index] = convert_str_list(val)
-            continue
-
-        if data_type == "link list":
-            model_column = data_frame[col_id]
-            for index, val in enumerate(model_column):
-                model_column[index] = convert_str_list(val, sort_list=False)
-            continue
-
-        raise RuntimeError(f"unknown column type '{data_type}' for column {col_id}")
+        convert_column(data_frame, col_id, data_type)
 
 
-def convert_int_range(data: str):
-    ret_list = []
-    items = data.split(",")
-    for item in items:
-        if "-" not in item:
-            # single number
-            ret_list.append(int(item))
-            continue
-        int_range = item.split("-")
-        if len(int_range) != 2:
-            raise RuntimeError("invalid range")
-        min_val = int(int_range[0])
-        max_val = int(int_range[1]) + 1
-        values = range(min_val, max_val)
-        ret_list.extend(values)
-    ret_list = list(set(ret_list))
-    ret_len = len(ret_list)
-    if ret_len < 1:
-        raise RuntimeError("invalid range")
-    if ret_len == 1:
-        return ret_list[0]
-    return ret_list
+def convert_column(data_frame: DataFrame, col_id: str, data_type: str):
+    model_column = data_frame[col_id]
+    for index, val in enumerate(model_column):
+        model_column[index] = convert_value(val, data_type)
 
 
-def convert_str_list(data: str, sort_list=True):
-    items = data.split(",")
-    ret_list = list(dict.fromkeys(items))   # set changes order of items
-    ret_len = len(ret_list)
-    if ret_len < 1:
-        raise RuntimeError("invalid range")
-    if ret_len == 1:
-        return ret_list[0]
-    ret_list = [item.strip() for item in ret_list]
-    if sort_list:
-        ret_list = sorted(ret_list)
-    return ret_list
+def convert_value(value, data_type: str):
+    if data_type == "int":
+        return int(value)
+    if data_type == "int range":
+        return convert_int_range(value)
+    if data_type == "str list":
+        return convert_str_list(value)
+    if data_type == "link list":
+        return convert_str_list(value, sort_list=False)
+    raise RuntimeError(f"unknown data type '{data_type}'")
 
 
 def to_flat_list(data_list):
