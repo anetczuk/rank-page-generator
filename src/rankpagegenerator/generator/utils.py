@@ -39,7 +39,7 @@ def dict_to_html_table(data_dict, header=True):
         else:
             val_str = convert_value(val)
         if not val_str:
-            val_str = """<span class="empty">&lt;empty&gt;</span>"""
+            val_str = """<span class="empty">[empty]</span>"""
         content += f"""<tr> <td>{key}</td> <td>{val_str}</td> </tr>\n"""
     content += """</table>"""
     return content

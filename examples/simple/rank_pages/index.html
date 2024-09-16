@@ -75,7 +75,7 @@ function generate_options_table(nav_data) {
     		const next_string = JSON.stringify(next_nav);
     		let val_label = option_val;
     		if ( val_label === "" ) {
-    			val_label = "&lt;empty&gt;";
+    			val_label = "[empty]";
     		}
     		const reqest_url = make_request_params(next_nav);
     		let link_style = "";
