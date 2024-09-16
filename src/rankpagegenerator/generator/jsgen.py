@@ -19,6 +19,7 @@ from rankpagegenerator.utils import write_data, read_data
 from rankpagegenerator.generator.staticgen import StaticGenerator
 from rankpagegenerator.generator.utils import HTML_LICENSE, dict_to_html_table
 from rankpagegenerator.data import DATA_DIR
+from rankpagegenerator.generator.dataframe import to_dict_col_vals
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -64,9 +65,11 @@ def generate_javascript(model_path, embed, output_path):
     if weights_dict is None:
         weights_dict = {}
 
+    options_dict = StaticGenerator.load_values(model_path)
+
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
-const DATA = {model_json};
+const VALUES_DICT = {options_dict};
 const DETAILS_PAGE = {details_page_dir};
 const WEIGHTS_DICT = {weights_dict};"""
 
@@ -98,18 +101,27 @@ const WEIGHTS_DICT = {weights_dict};"""
 <head>
 
 <style>
+    a {{ color: blue; }}         /* Unvisited link  */
+    a:visited {{ color: blue; }} /* Visited link    */
+    a:hover {{ color: blue; }}   /* Mouse over link */
+    a:active {{ color: blue; }}  /* Selected link   */
+
     .bottomspace {{
         margin-bottom: 16px;
+    }}
+
+    .activeoption {{
+        color: red !important;
     }}
 </style>
 
 {page_script_content}
 
 </head>
-<body onload="navigate([])">
+<body onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href=''>back to index</a>
+    <a href='?'>reset</a>
 </div>
 
 <div id="container"></div>

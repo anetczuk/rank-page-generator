@@ -78,3 +78,27 @@ def to_dict_from_2col(content: DataFrame):
     value_list = content.iloc[:, 1].to_list()
     config_dict = dict(zip(field_list, value_list))
     return config_dict
+
+
+def to_dict_col_vals(content: DataFrame):
+    ret_dict = {}
+    header_row = content.columns
+    column_names = header_row.to_list()
+    for col_name in column_names:
+        values_list = content[col_name].tolist()
+        values_list = to_flat_list(values_list)
+        cat_values_set = set(values_list)
+        cat_values_set = sorted(cat_values_set)
+        ret_dict[col_name] = cat_values_set
+    return ret_dict
+
+
+def to_flat_list(data_list):
+    ret_list = []
+    for item in data_list:
+        if isinstance(item, list):
+            ret_list.extend(item)
+        else:
+            ret_list.append(item)
+    ret_list = sorted(ret_list)
+    return ret_list

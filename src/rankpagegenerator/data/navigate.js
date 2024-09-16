@@ -10,44 +10,62 @@
 /* jshint esversion: 6 */
 
 
-function navigate(nav_data) {
-    let target = document.getElementById("container");
-
-	const data_container = filter_dict(nav_data);
-	const data_columns = get_columns(data_container);
-
-	/// calculate allowed categories to select
-	let options_dict = {};
-	for (let col_index in data_columns) {
-		let col_name = data_columns[col_index];
-		let values = get_values(data_container, col_name);
-		values.sort();
-        options_dict[ col_name ] = values;
+function start_navigate() {
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	const entries = urlParams.entries();
+	let nav_data = {};
+	for(const entry of entries) {
+		nav_data[ entry[0] ] = entry[1];
 	}
-	let table_content = generate_options_table(data_container, options_dict, nav_data);
+	navigate(nav_data);
+}
+
+
+function navigate(nav_data = {}) {
+    let target = document.getElementById("container");
+	let table_content = generate_options_table(nav_data);
 	table_content += generate_results(nav_data);
     target.innerHTML = table_content;
 }
 
 
-function generate_options_table(data_container, options_dict, nav_data) {
+function generate_options_table(nav_data) {
 	let content = "";
-	content += `<div class="bottomspace">navigation: ${nav_data.join(" | ")}</div>`;
+	//content += `<div class="bottomspace">navigation: ${nav_data.join(" | ")}</div>`;
 	content += `<table class="bottomspace">`;
-    for (let option_key in options_dict) {
-    	let option_values = options_dict[option_key];
+    for (let option_key in VALUES_DICT) {
+    	if ( option_key == ANSWER_COLUMN ) {
+    		continue;
+    	}
+    	const nav_value = nav_data[option_key];
+    	let option_values = VALUES_DICT[option_key];
 		content += `<tr> <td>${option_key}</td> <td>`;
 		let link_list = [];
     	for (let option_index in option_values) {
     		const option_val = option_values[option_index];
+
     		let next_nav = deep_copy(nav_data);
-    		next_nav.push( [option_key, option_val] );
+    		if ( option_val == nav_value ) {
+    			/// remove
+    			delete next_nav[ option_key ];
+    		} else {
+    			/// add
+	    		next_nav[ option_key ] = option_val;
+    		}
+    		
     		const next_string = JSON.stringify(next_nav);
     		let val_label = option_val;
     		if ( val_label === "" ) {
     			val_label = "&lt;empty&gt;";
     		}
-    		link_list.push(`<a href='#' onclick='navigate(${next_string})'>${val_label}</a> `);
+    		const reqest_url = make_request_params(next_nav);
+    		let link_style = "";
+    		if ( nav_value == option_val ) {
+    			link_style = `class="activeoption"`;
+    		}
+    		link_list.push(`<a href='${reqest_url}' ${link_style}>${val_label}</a> `);
+    		//link_list.push(`<a href='#' onclick='navigate(${next_string})'>${val_label}</a> `);
     	}
 		content += link_list.join(" | ");
 		content += "</td> </tr>";
@@ -61,8 +79,8 @@ function generate_options_table(data_container, options_dict, nav_data) {
 function generate_results(nav_data) {
 	let content = "";
     content += `<div>found species:</div>`;
-    if (nav_data.length < 1) {
-		content += find_simple_answer(DATA);
+    if (Object.keys(nav_data).length < 1) {
+		content += find_simple_answer();
     } else {
 		content += find_weighted_answer(nav_data);
 	}
@@ -70,10 +88,11 @@ function generate_results(nav_data) {
 }
 
 
-function find_simple_answer( data_container ) {
-    const answer_list = get_values(data_container, ANSWER_COLUMN);
+function find_simple_answer() {
+    const answer_list = VALUES_DICT[ANSWER_COLUMN];
     let content = `<div>`;
 	for (let item_index in answer_list) {
+		content += `<div>`;
 		let item_data = answer_list[item_index];
 		if ( item_data in DETAILS_PAGE ) {
 			const link_href = DETAILS_PAGE[item_data]
@@ -81,6 +100,7 @@ function find_simple_answer( data_container ) {
 		} else {
 		    content += `<span>${item_data}</span>\n`;
 		}
+		content += `</div>\n`;
     }
     content += `</div>`;
     return content;
@@ -88,23 +108,21 @@ function find_simple_answer( data_container ) {
 
 
 function find_weighted_answer( nav_data ) {
-    const answer_list = get_values(DATA, ANSWER_COLUMN);
+	const nav_length = Object.keys(nav_data).length;
+    const answer_list = VALUES_DICT[ANSWER_COLUMN];
     let weights_list = [];
 	for (let item_index in answer_list) {
 		let answer_weight = 0.0;
 		const answer_id = answer_list[item_index];
 		const answer_weights = WEIGHTS_DICT[answer_id];
-	    for (let nav_index in nav_data) {
-	    	const nav_pair = nav_data[nav_index];
-	        let nav_key = nav_pair[0];
-	        let nav_value = nav_pair[1];
+	    for (let nav_key in nav_data) {
+	    	const nav_value = nav_data[nav_key];
 			const weight_val = answer_weights[nav_key][nav_value];
 			answer_weight += weight_val;
         }
-        answer_weight = answer_weight / nav_data.length * 100.0;
+        answer_weight = answer_weight / nav_length * 100.0;
         weights_list.push([answer_id, answer_weight]);
     }
-	console.log("sss1: " + weights_list);
     weights_list.sort(function(item_a, item_b) {
     	if (item_a[1] < item_b[1]) {
     		return 1;
@@ -124,7 +142,7 @@ function find_weighted_answer( nav_data ) {
 	    content += `<div>`;
 		if ( answer_id in DETAILS_PAGE ) {
 			const link_href = DETAILS_PAGE[answer_id]
-	    	content += `<span><a href="${link_href}">${answer_id} (${percent_val}%)</a></span>\n`;
+	    	content += `<span><a href="${link_href}">${answer_id}</a> (${percent_val}%)</span>\n`;
 		} else {
 		    content += `<span>${answer_id} (${percent_val}%)</span>\n`;
 		}
@@ -135,81 +153,22 @@ function find_weighted_answer( nav_data ) {
 }
 
 
-function get_columns( data_container ) {
-	let ret_list = [];
-	for (let data_index in data_container) {
-		let data_row = data_container[data_index];
-        for (let row_key in data_row) {
-        	if (row_key != ANSWER_COLUMN ) {
-	        	ret_list.push(row_key);
-        	}
-        }	
+function make_request_params(data_dict) {
+	let curr_url = "";
+	if (window.location.origin != "null") {
+		curr_url += window.location.origin;
+	} else {
+		curr_url += "file://";
 	}
-	return remove_array_dupes(ret_list);
-}
-
-
-// data_container - list of dicts
-function get_values( data_container, column_name ) {
-	let ret_list = [];
-	for (let data_index in data_container) {
-		let data_row = data_container[data_index];
-        for (let row_key in data_row) {
-        	if (row_key == column_name ) {
-        		const data_val = data_row[row_key];
-	        	ret_list = ret_list.concat( data_val );
-        	}
-        }	
-	}
-	return remove_array_dupes(ret_list);
-}
-
-
-function filter_dict( cut_list ) {
-	/// console.log("cutting data: " + to_str(cut_list));
-    let curr_data = deep_copy(DATA);
-    for (let cut_index in cut_list) {
-    	const cut_pair = cut_list[cut_index];
-        let cut_key = cut_pair[0];
-        let cut_value = cut_pair[1];
-	    let new_data = [];
-        for (let row_index in curr_data) {
-        	let datarow = curr_data[row_index];
-            let new_row = filter_row(datarow, cut_key, cut_value);
-            if (new_row != undefined) {
-                new_data.push(new_row);
-            }
-        }
-        curr_data = new_data;
-    }
-    /// console.log("sliced data: " + to_str(curr_data));
-    return curr_data;
-}
-
-
-function filter_row( curr_row, cut_key, cut_value ) {
-    const value_list = curr_row[cut_key];
-    if ( value_list.includes(cut_value) == false ) {
-        return undefined;
-    }
-    let new_row = {};
-    for (let curr_key in curr_row) {
-        if ( curr_key == cut_key ) {
-            continue;
-        }
-        new_row[curr_key] = curr_row[curr_key];
-    }
-    return new_row;
+	curr_url += window.location.pathname;
+	let url = new URL(curr_url);
+	url.search = new URLSearchParams(data_dict);
+	return url.toString();
 }
 
 
 function deep_copy(data) {
 	return JSON.parse(JSON.stringify(data));
-}
-
-
-function to_str(data) {
-	return JSON.stringify(data);
 }
 
 
