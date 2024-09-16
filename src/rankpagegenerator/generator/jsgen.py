@@ -47,19 +47,21 @@ def generate_javascript(model_path, embed, output_path):
     model: DataFrame = StaticGenerator.load(model_path)
     config: Dict[str, str] = StaticGenerator.load_config(model_path)
 
-    answer_column_id = None
-    if config is not None:
-        answer_column_id = config["answer_column"]
-    else:
+    answer_column_id = config.get("answer_column")
+    if answer_column_id is None:
         columns = list(model.columns)
         answer_column_id = columns[0]
 
     _LOGGER.info("answer column id: %s", answer_column_id)
 
+    page_title = config.get("page_title", "")
+    if page_title:
+        page_title = f"""<title>{page_title}</title>"""
+
     model_json = to_json(model)
     answer_details = StaticGenerator.load_details(model_path)
     details_json = to_json(answer_details)
-    details_page_dir = generate_answer_details_pages(model_json, details_json, output_path)
+    details_page_dir = generate_answer_details_pages(model_json, details_json, config, output_path)
 
     weights_dict = StaticGenerator.load_weights(model_path)
     if weights_dict is None:
@@ -101,7 +103,7 @@ const WEIGHTS_DICT = {weights_dict};"""
     content += f"""<html>
 {HTML_LICENSE}
 <head>
-
+{page_title}
 <link rel="stylesheet" type="text/css" href="styles.css">
 
 {page_script_content}
@@ -124,10 +126,13 @@ const WEIGHTS_DICT = {weights_dict};"""
     write_data(out_index_path, content)
 
 
-def generate_answer_details_pages(model_json, details_json, output_path):
+# model_json - list of dicts (key is column name)
+def generate_answer_details_pages(model_json, details_json, config_dict, output_path):
     if details_json is None:
         details_json = {}
     ## generate answer pages
+    page_title = config_dict.get("page_title", "")
+
     ret_dict = {}
     pages_dir = "pages"
     out_pages_path = os.path.join(output_path, pages_dir)
@@ -151,6 +156,10 @@ def generate_answer_details_pages(model_json, details_json, output_path):
 
         characteristics = dict_to_html_table(data_dict)
 
+        curr_page_title = page_title
+        if curr_page_title:
+            curr_page_title = f"""<title>{answer} - {curr_page_title}</title>"""
+
         prev_link = "prev"
         if answer_counter > 0:
             prev_href = f"{answer_counter - 1}.html"
@@ -163,6 +172,7 @@ def generate_answer_details_pages(model_json, details_json, output_path):
         content = f"""<html>
 {HTML_LICENSE}
 <head>
+{curr_page_title}
 <link rel="stylesheet" type="text/css" href="../styles.css">
 </head>
 <body>

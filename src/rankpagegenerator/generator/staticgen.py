@@ -174,9 +174,10 @@ class StaticGenerator:
     @staticmethod
     def load_config(model_path) -> Dict[str, str]:
         config_data: DataFrame = load_table_from_excel(model_path, "Config:", assume_default=False)
-        if config_data is None:
-            return None
-        return to_dict_from_2col(config_data)
+        config_dict = to_dict_from_2col(config_data)
+        if config_dict is None:
+            config_dict = {}
+        return config_dict
 
     @staticmethod
     def load_order(model_path):
