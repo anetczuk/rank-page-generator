@@ -53,14 +53,14 @@ if [ -f "$PAGE_PATH" ]; then
 	OUT_IMG_PATH="$OUT_DIR/main-page.png"
 	chromium --headless "file://$PAGE_PATH" --screenshot="$OUT_IMG_PATH"
 	mogrify -trim "$OUT_IMG_PATH"
-	convert -bordercolor white -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
+	convert -bordercolor \#EBEDEF -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
 	convert "$OUT_IMG_PATH" -strip "$OUT_IMG_PATH"
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
 
 	OUT_IMG_PATH="$OUT_DIR/main-page-filter.png"
 	chromium --headless "file://${PAGE_PATH}?horn=yes&wings=no" --screenshot="$OUT_IMG_PATH"
 	mogrify -trim "$OUT_IMG_PATH"
-	convert -bordercolor white -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
+	convert -bordercolor \#EBEDEF -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
 	convert "$OUT_IMG_PATH" -strip "$OUT_IMG_PATH"
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
 fi
@@ -70,7 +70,7 @@ if [ -f "$PAGE_PATH" ]; then
 	OUT_IMG_PATH="$OUT_DIR/sub-page.png"
 	chromium --headless "file://$PAGE_PATH" --screenshot="$OUT_IMG_PATH"
 	mogrify -trim "$OUT_IMG_PATH"
-	convert -bordercolor white -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
+	convert -bordercolor \#EBEDEF -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
 	convert "$OUT_IMG_PATH" -strip "$OUT_IMG_PATH"
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
 fi

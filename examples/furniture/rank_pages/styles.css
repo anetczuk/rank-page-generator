@@ -1,3 +1,7 @@
+body {
+	background-color: #ebedef;
+}
+
 .mainpage a { color: blue; }         /* Unvisited link  */
 .mainpage a:visited { color: blue; } /* Visited link    */
 .mainpage a:hover { color: blue; }   /* Mouse over link */
