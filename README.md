@@ -13,6 +13,9 @@ Few samples are presented below:
 [![main page with filtered content](examples/horse/rank_pages/main-page-filter.png "main page with filtered content")](examples/horse/rank_pages/main-page-filter.png)
 [![details of result](examples/horse/rank_pages/sub-page.png "details of result")](examples/horse/rank_pages/sub-page.png)
 
+First image presents main page without any selected filter. On second image there is main page with selected filters and
+results with calculated match precentage. Last image presents details page of *horse* item.
+
 
 ## Running
 
@@ -22,6 +25,13 @@ To run application simply execute followoing command:
 ```
 python3 -m rankpagegenerator.main generate --data <apth-to-model> --outdir <path-to-output-dir>
 ```
+
+
+## Model definition
+
+Model consists of data tables with special marks in spreadsheet file.
+
+There are few examples of model files placed under `./examples` directory.
 
 
 ## Installation
