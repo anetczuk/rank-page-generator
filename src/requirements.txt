@@ -1,3 +1,6 @@
 pandas
 appdirs>=1.4.4
 openpyxl
+
+# required for testing
+nodejs-bin

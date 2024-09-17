@@ -37,6 +37,15 @@ Installation for development:
  - `install-devel.sh` to install package in developer mode using `pip` (with dependencies)
 
 
+## Development
+
+All tests, linters and content generators can be executed by simple script `./process-all.sh`.
+
+Unit tests are executed by `./src/testrankpagegenerator/runtests.py`.
+
+Code linters can be run by `./tools/checkall.sh`.
+
+
 ## License
 
 BSD 3-Clause License
