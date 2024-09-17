@@ -3,6 +3,17 @@
 Generate static pages containing rank search based on defined model.
 
 
+## Examples
+
+In `/examples` there are few examples of how to use the tool and what are results.
+
+Few samples are presented below:
+
+[![main page with available filters](examples/horse/rank_pages/main-page.png "main page with available filters")](examples/horse/rank_pages/main-page.png)
+[![main page with filtered content](examples/horse/rank_pages/main-page-filter.png "main page with filtered content")](examples/horse/rank_pages/main-page-filter.png)
+[![details of result](examples/horse/rank_pages/sub-page.png "details of result")](examples/horse/rank_pages/sub-page.png)
+
+
 ## Running
 
 [There](doc/cmdargs.md) is description of command line arguments.
@@ -20,13 +31,10 @@ Installation of package can be done by:
  - to install package directly from GitHub execute: `pip3 install --user -I git+https://github.com/anetczuk/rank-page-generator.git#subdirectory=src`
  - uninstall: `pip3 uninstall rankpagegenerator`
 
-Installation For development:
+Installation for development:
  - `install-deps.sh` to install package dependencies only (`requirements.txt`)
  - `install-package.sh` to install package in standard way through `pip` (with dependencies)
  - `install-devel.sh` to install package in developer mode using `pip` (with dependencies)
-
-
-## References
 
 
 ## License
