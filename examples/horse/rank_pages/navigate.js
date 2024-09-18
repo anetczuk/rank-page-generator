@@ -20,7 +20,7 @@ function start_navigate() {
 	}
 
     let target = document.getElementById("container");
-    let navigator = new Navigator(VALUES_DICT, WEIGHTS_DICT, DETAILS_PAGE, ANSWER_COLUMN);
+    let navigator = new Navigator(VALUES_DICT, WEIGHTS_DICT, DETAILS_PAGE, ANSWER_COLUMN, TRANSLATION_DICT);
     target.innerHTML = navigator.generate_content(nav_data);
 }
 
@@ -29,11 +29,12 @@ function start_navigate() {
 
 
 class Navigator {
-	constructor(values_dict, weights_dict, detail_pages, answer_column) {
+	constructor(values_dict, weights_dict, detail_pages, answer_column, translation_dict) {
 		this.values_dict = values_dict;
 		this.weights_dict = weights_dict;
 		this.detail_pages = detail_pages;
 		this.answer_column = answer_column;
+		this.translation_dict = translation_dict;
 	}
 
 	generate_content(nav_data = {}) {
@@ -44,7 +45,7 @@ class Navigator {
 	
 	generate_filter_table(nav_data) {
 		let content = "";
-		content += `<div style="font-weight: bold;">Parametry:</div>`;
+		content += `<div style="font-weight: bold;">${this.get_translation("Parameters")}:</div>`;
 		content += `<table class="bottomspace">`;
 	    for (let option_key in this.values_dict) {
 	    	if ( option_key == this.answer_column ) {
@@ -68,7 +69,7 @@ class Navigator {
 	    		const next_string = JSON.stringify(next_nav);
 	    		let val_label = option_val;
 	    		if ( val_label === "" ) {
-	    			val_label = "[empty]";
+	    			val_label = `[${this.get_translation("empty")}]`;
 	    		}
 	    		const reqest_url = this.make_request_params(next_nav);
 	    		let link_style = "";
@@ -88,7 +89,7 @@ class Navigator {
 	/// calculate and present weighted answers
 	generate_results(nav_data) {
 		let content = "";
-	    content += `<div style="font-weight: bold;">Wyniki:</div>`;
+	    content += `<div style="font-weight: bold;">${this.get_translation("Results")}:</div>`;
 	    content += `<div style="margin-left: 4px;">`;
 	    if (Object.keys(nav_data).length < 1) {
 			content += this.find_simple_answer();
@@ -173,6 +174,19 @@ class Navigator {
 		let url = new URL(curr_url);
 		url.search = new URLSearchParams(data_dict);
 		return url.toString();
+	}
+
+	get_translation(key) {
+		if (typeof this.translation_dict === 'undefined') {
+			/// translation dictionary not given
+			return key;
+		}
+		const value = this.translation_dict[key];
+		if (typeof value === 'undefined') {
+			/// translation not set for given key
+			return key;
+		}
+		return value;
 	}
 
 }

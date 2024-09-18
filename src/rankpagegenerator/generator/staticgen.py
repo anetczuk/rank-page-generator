@@ -34,9 +34,9 @@ def print_info(model_path):
     StaticGenerator.print_info(model)
 
 
-def generate_pages(model_path, _embed, output_path):
+def generate_pages(model_path, translation_path, _embed, output_path):
     gen = StaticGenerator()
-    gen.generate(model_path, output_path)
+    gen.generate(model_path, translation_path, output_path)
 
 
 ## ============================================
@@ -62,7 +62,7 @@ class StaticGenerator:
         self.label_characteristic = "cecha"
         self.label_value = "wartość"
 
-    def generate(self, model_path, output_path):
+    def generate(self, model_path, _translation_path, output_path):
         self.page_counter = 0
 
         self.out_root_dir = output_path
@@ -182,6 +182,9 @@ class StaticGenerator:
     @staticmethod
     def load_order(model_path):
         order_data: DataFrame = load_table_from_excel(model_path, "Order:", assume_default=False)
+        if order_data is None:
+            return {}
+
         data_types: DataFrame = load_table_from_excel(model_path, "Data type:")
         data_type_dict = to_dict_from_2col(data_types)
 
@@ -289,6 +292,8 @@ def gen_index_page(output_path):
 
 
 def apply_data_types(data_frame: DataFrame, data_types: dict):
+    if data_frame is None:
+        return
     if data_types is None:
         return
 

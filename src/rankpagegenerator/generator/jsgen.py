@@ -19,6 +19,7 @@ from rankpagegenerator.utils import write_data, read_data
 from rankpagegenerator.generator.staticgen import StaticGenerator
 from rankpagegenerator.generator.utils import HTML_LICENSE, dict_to_html_table
 from rankpagegenerator.data import DATA_DIR
+from rankpagegenerator.dataloader import load_transaltion, get_translation
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -31,18 +32,20 @@ def print_info(model_path):
     StaticGenerator.print_info(model)
 
 
-def generate_pages(model_path, embed, output_path):
-    generate_javascript(model_path, embed, output_path)
+def generate_pages(model_path, translation_path, embed, output_path):
+    generate_javascript(model_path, translation_path, embed, output_path)
 
 
 ## ============================================
 
 
-def generate_javascript(model_path, embed, output_path):
+def generate_javascript(model_path, translation_path, embed, output_path):
     os.makedirs(output_path, exist_ok=True)
 
     navigation_script_path = os.path.join(DATA_DIR, "navigate.js")
     css_styles_path = os.path.join(DATA_DIR, "styles.css")
+
+    translation_dict = load_transaltion(translation_path)
 
     model: DataFrame = StaticGenerator.load(model_path)
     config: Dict[str, str] = StaticGenerator.load_config(model_path)
@@ -61,7 +64,7 @@ def generate_javascript(model_path, embed, output_path):
     model_json = to_json(model)
     answer_details = StaticGenerator.load_details(model_path)
     details_json = to_json(answer_details)
-    details_page_dir = generate_answer_details_pages(model_json, details_json, config, output_path)
+    details_page_dir = generate_answer_details_pages(model_json, details_json, config, translation_dict, output_path)
 
     weights_dict = StaticGenerator.load_weights(model_path)
     if weights_dict is None:
@@ -73,7 +76,8 @@ def generate_javascript(model_path, embed, output_path):
 const ANSWER_COLUMN = "{answer_column_id}";
 const VALUES_DICT = {options_dict};
 const DETAILS_PAGE = {details_page_dir};
-const WEIGHTS_DICT = {weights_dict};"""
+const WEIGHTS_DICT = {weights_dict};
+const TRANSLATION_DICT = {translation_dict};"""
 
     page_script_content = ""
     if embed:
@@ -112,7 +116,7 @@ const WEIGHTS_DICT = {weights_dict};"""
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>reset</a>
+    <a href='?'>{get_translation(translation_dict, "Reset")}</a>
 </div>
 
 <div id="container"></div>
@@ -127,7 +131,7 @@ const WEIGHTS_DICT = {weights_dict};"""
 
 
 # model_json - list of dicts (key is column name)
-def generate_answer_details_pages(model_json, details_json, config_dict, output_path):
+def generate_answer_details_pages(model_json, details_json, config_dict, translation_dict, output_path):
     if details_json is None:
         details_json = {}
     ## generate answer pages
@@ -154,17 +158,17 @@ def generate_answer_details_pages(model_json, details_json, config_dict, output_
                 data_dict.update(details_dict)
                 break
 
-        characteristics = dict_to_html_table(data_dict)
+        characteristics = dict_to_html_table(data_dict, translation_dict)
 
         curr_page_title = page_title
         if curr_page_title:
             curr_page_title = f"""<title>{answer} - {curr_page_title}</title>"""
 
-        prev_link = "prev"
+        prev_link = get_translation(translation_dict, "Prev")
         if answer_counter > 0:
             prev_href = f"{answer_counter - 1}.html"
             prev_link = f"""<a href="{prev_href}">{prev_link}</a>"""
-        next_link = "next"
+        next_link = get_translation(translation_dict, "Next")
         if answer_counter < rows_num - 1:
             next_href = f"{answer_counter + 1}.html"
             next_link = f"""<a href="{next_href}">{next_link}</a>"""
@@ -177,7 +181,7 @@ def generate_answer_details_pages(model_json, details_json, config_dict, output_
 </head>
 <body>
 <div>
-<a href="../index.html">back to index</a>
+<a href="../index.html">{get_translation(translation_dict, "Back to Filters")}</a>
 </div>
 <div class="bottomspace">
 <span>{prev_link}</span> <span>{next_link}</span>

@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 
-echo "running simple example"
+echo "running furniture example"
 
 
 OUT_DIR="$SCRIPT_DIR/rank_pages"
@@ -19,6 +19,7 @@ cd "$SCRIPT_DIR/../../src/"
 
 
 DATA_PATH="$SCRIPT_DIR/model.xls"
+TRANS_PATH="$SCRIPT_DIR/translation.json"
 
 
 python3 -m rankpagegenerator.main -la info \
@@ -31,6 +32,7 @@ fi
 
 python3 -m rankpagegenerator.main -la generate \
 								--data "$DATA_PATH" \
+						   		--translation "$TRANS_PATH" \
 								--outdir "$OUT_DIR"
 
 

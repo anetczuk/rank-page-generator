@@ -11,6 +11,8 @@ import os
 import logging
 import validators
 
+from rankpagegenerator.dataloader import get_translation
+
 
 SCRIPT_DIR = os.path.dirname(__file__)
 
@@ -24,13 +26,16 @@ Project is distributed under the BSD 3-Clause license.
 -->"""
 
 
-def dict_to_html_table(data_dict, header=True):
+def dict_to_html_table(data_dict, translation_dict=None, header=True):
     if data_dict is None:
         return None
+    if translation_dict is None:
+        translation_dict = {}
     content = ""
     content += """<table>\n"""
     if header:
-        content += """<tr> <th>Parametr:</th> <th>Wartość:</th> </tr>\n"""
+        content += f"""<tr> <th>{get_translation(translation_dict, "Parameter")}:</th>\
+ <th>{get_translation(translation_dict, "Value")}:</th> </tr>\n"""
     for key, val in data_dict.items():
         val_str = ""
         if isinstance(val, list):
@@ -39,7 +44,7 @@ def dict_to_html_table(data_dict, header=True):
         else:
             val_str = convert_value(val)
         if not val_str:
-            val_str = """<span class="empty">[empty]</span>"""
+            val_str = f"""<span class="empty">[{get_translation(translation_dict, "empty")}]</span>"""
         content += f"""<tr> <td>{key}</td> <td>{val_str}</td> </tr>\n"""
     content += """</table>"""
     return content

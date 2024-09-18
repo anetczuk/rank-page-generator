@@ -12,6 +12,7 @@ const ANSWER_COLUMN = "name";
 const VALUES_DICT = {'name': ['horse', 'pegasus', 'unicorn'], 'horn': ['no', 'yes'], 'wings': ['no', 'yes']};
 const DETAILS_PAGE = {'horse': 'pages/0.html', 'unicorn': 'pages/1.html', 'pegasus': 'pages/2.html'};
 const WEIGHTS_DICT = {'horse': {'horn': {'no': 1.0, 'yes': 0.0}, 'wings': {'no': 1.0, 'yes': 0.0}}, 'unicorn': {'horn': {'no': 0.0, 'yes': 1.0}, 'wings': {'no': 1.0, 'yes': 0.0}}, 'pegasus': {'horn': {'no': 1.0, 'yes': 0.0}, 'wings': {'no': 0.0, 'yes': 1.0}}};
+const TRANSLATION_DICT = {};
 </script>
 
 <script src="navigate.js"></script>
@@ -20,7 +21,7 @@ const WEIGHTS_DICT = {'horse': {'horn': {'no': 1.0, 'yes': 0.0}, 'wings': {'no':
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>reset</a>
+    <a href='?'>Reset</a>
 </div>
 
 <div id="container"></div>

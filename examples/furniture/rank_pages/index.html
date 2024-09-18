@@ -9,9 +9,10 @@ Project is distributed under the BSD 3-Clause license.
 
 <script>
 const ANSWER_COLUMN = "name";
-const VALUES_DICT = {'name': ['chair', 'stool', 'table'], 'num_of_legs': ['3', '4'], 'back': ['no', 'yes']};
+const VALUES_DICT = {'name': ['chair', 'stool', 'table'], 'num_of_legs': [3, 4], 'back': ['no', 'yes']};
 const DETAILS_PAGE = {'table': 'pages/0.html', 'chair': 'pages/1.html', 'stool': 'pages/2.html'};
-const WEIGHTS_DICT = {'table': {'num_of_legs': {'3': 0.0, '4': 1.0}, 'back': {'no': 1.0, 'yes': 0.0}}, 'chair': {'num_of_legs': {'3': 0.0, '4': 1.0}, 'back': {'no': 0.0, 'yes': 1.0}}, 'stool': {'num_of_legs': {'3': 1.0, '4': 0.0}, 'back': {'no': 1.0, 'yes': 0.0}}};
+const WEIGHTS_DICT = {'table': {'num_of_legs': {3: 0.0, 4: 1.0}, 'back': {'no': 1.0, 'yes': 0.0}}, 'chair': {'num_of_legs': {3: 0.0, 4: 1.0}, 'back': {'no': 0.0, 'yes': 1.0}}, 'stool': {'num_of_legs': {3: 1.0, 4: 0.0}, 'back': {'no': 1.0, 'yes': 0.0}}};
+const TRANSLATION_DICT = {'Reset': '-Reset-', 'Parameters': '-Parameters-', 'Results': '-Results-', 'Back to Filters': '-Back to Filters-', 'Prev': '-Prev-', 'Next': '-Next-', 'Parameter': '-Parameter-', 'Value': '-Value-', 'empty': '-empty-'};
 </script>
 
 <script src="navigate.js"></script>
@@ -20,7 +21,7 @@ const WEIGHTS_DICT = {'table': {'num_of_legs': {'3': 0.0, '4': 1.0}, 'back': {'n
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>reset</a>
+    <a href='?'>-Reset-</a>
 </div>
 
 <div id="container"></div>

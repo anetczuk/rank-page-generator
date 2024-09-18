@@ -35,9 +35,10 @@ def process_generate(args):
     _LOGGER.info("starting generator")
     _LOGGER.debug("logging to file: %s", logger.log_file)
     model_path = args.data
+    translation_path = args.translation
     embed = str(args.embedscripts).lower() != "false"
     output_path = args.outdir
-    generate_pages(model_path, embed, output_path)
+    generate_pages(model_path, translation_path, embed, output_path)
     return 0
 
 
@@ -73,6 +74,7 @@ def main():
     subparser.description = description
     subparser.set_defaults(func=process_generate)
     subparser.add_argument("-d", "--data", action="store", required=False, help="Path to data file with model")
+    subparser.add_argument("-t", "--translation", action="store", required=False, help="Path to translation file")
     subparser.add_argument("--embedscripts", action="store", default=False, help="Embed scripts into one file")
     subparser.add_argument("--outdir", action="store", required=True, help="Path to output directory")
 

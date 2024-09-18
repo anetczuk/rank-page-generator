@@ -23,6 +23,7 @@ subcommands:
 ## <a name="generate_help"></a> python3 -m rankpagegenerator.main generate --help
 ```
 usage: python3 -m rankpagegenerator.main generate [-h] [-d DATA]
+                                                  [-t TRANSLATION]
                                                   [--embedscripts EMBEDSCRIPTS]
                                                   --outdir OUTDIR
 
@@ -31,6 +32,8 @@ generate rank static pages
 optional arguments:
   -h, --help            show this help message and exit
   -d DATA, --data DATA  Path to data file with model (default: None)
+  -t TRANSLATION, --translation TRANSLATION
+                        Path to translation file (default: None)
   --embedscripts EMBEDSCRIPTS
                         Embed scripts into one file (default: False)
   --outdir OUTDIR       Path to output directory (default: None)
