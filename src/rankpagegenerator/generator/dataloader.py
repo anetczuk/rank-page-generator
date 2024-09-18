@@ -104,14 +104,18 @@ class DataLoader:
         model_data: DataFrame = self.model_data
         weights_dict = {}
 
+        answer_column_id = self.get_answer_column_name()
+
         header_row = model_data.columns
         column_names = header_row.to_list()
         for _index, row_data in model_data.iterrows():
-            answer_id = row_data.iloc[0]
-            weights_dict[answer_id] = {}
+            answer_value = row_data[answer_column_id]
+            weights_dict[answer_value] = {}
             row_length = len(row_data)
-            for row_index in range(1, row_length):
+            for row_index in range(0, row_length):
                 col_name = column_names[row_index]
+                if col_name == answer_column_id:
+                    continue
                 order_values = order_dict.get(col_name)
                 if order_values is None:
                     # order not specified for given category - use binary rule
@@ -122,13 +126,13 @@ class DataLoader:
 
                     row_values = row_data.iloc[row_index]
                     col_weights_dict = calculate_weights_binary(row_values, cat_values_set)
-                    weights_dict[answer_id][col_name] = col_weights_dict
+                    weights_dict[answer_value][col_name] = col_weights_dict
                     continue
 
                 try:
                     row_values = row_data.iloc[row_index]
                     col_weights_dict = calculate_weights(row_values, order_values)
-                    weights_dict[answer_id][col_name] = col_weights_dict
+                    weights_dict[answer_value][col_name] = col_weights_dict
                 except ValueError:
                     _LOGGER.exception("unable to find row value in order list '%s' (%s)", col_name, order_values)
                     raise
@@ -152,7 +156,7 @@ class DataLoader:
     def get_page_title(self):
         return self.config_dict.get("page_title", "")
 
-    def get_answer_column(self):
+    def get_answer_column_name(self):
         answer_column_id = self.config_dict.get("answer_column")
         if answer_column_id is not None:
             return answer_column_id

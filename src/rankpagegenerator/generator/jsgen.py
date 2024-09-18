@@ -37,7 +37,7 @@ def generate_javascript(data_loader: DataLoader, embed, output_path):
     navigation_script_path = os.path.join(DATA_DIR, "navigate.js")
     css_styles_path = os.path.join(DATA_DIR, "styles.css")
 
-    answer_column_id = data_loader.get_answer_column()
+    answer_column_id = data_loader.get_answer_column_name()
 
     _LOGGER.info("answer column id: %s", answer_column_id)
 
@@ -109,6 +109,7 @@ const TRANSLATION_DICT = {data_loader.translation_dict};"""
 def generate_answer_details_pages(data_loader: DataLoader, output_path):
     model_json = data_loader.get_model_json()
     translation_dict = data_loader.translation_dict
+    answer_column_id = data_loader.get_answer_column_name()
 
     ## generate answer pages
     page_title = data_loader.get_page_title()
@@ -124,11 +125,11 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
         value_list = list(row_dict.values())  # values
         data_dict = dict(zip(field_list, value_list))
 
-        answer = value_list[0][0]
+        answer_value = row_dict[answer_column_id][0]
         details_dict = None
         for item in data_loader.details_dict:
             item_detail = list(item.values())  # list of lists
-            if item_detail[0][0] == answer:
+            if item_detail[0][0] == answer_value:
                 details_dict = item
                 details_dict.pop(next(iter(details_dict)))  # remove first key
                 data_dict.update(details_dict)
@@ -138,7 +139,7 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
 
         curr_page_title = page_title
         if curr_page_title:
-            curr_page_title = f"""<title>{answer} - {curr_page_title}</title>"""
+            curr_page_title = f"""<title>{answer_value} - {curr_page_title}</title>"""
 
         prev_link = data_loader.get_translation("Prev")
         if answer_counter > 0:
@@ -175,6 +176,6 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
         answer_counter += 1
 
         rel_path = os.path.join(pages_dir, page_name)
-        ret_dict[answer] = rel_path
+        ret_dict[answer_value] = rel_path
 
     return ret_dict
