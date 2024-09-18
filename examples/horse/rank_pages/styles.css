@@ -7,8 +7,15 @@ body {
 .mainpage a:hover { color: blue; }   /* Mouse over link */
 .mainpage a:active { color: blue; }  /* Selected link   */
 
-.bottomspace {
+.bottomspace, .filterstable {
     margin-bottom: 16px;
+}
+
+.filterstable th {
+    text-align: left;
+}
+.resultstable th {
+    text-align: left;
 }
 
 .activeoption {

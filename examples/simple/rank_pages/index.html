@@ -63,8 +63,8 @@ class Navigator {
 	
 	generate_filter_table(nav_data) {
 		let content = "";
-		content += `<div style="font-weight: bold;">${this.get_translation("Parameters")}:</div>`;
-		content += `<table class="bottomspace">`;
+		content += `<table class="filterstable">`;
+		content += `<tr> <th>${this.get_translation("Parameters")}:</th> <th></th> </tr>`;
 	    for (let option_key in this.values_dict) {
 	    	if ( option_key == this.answer_column ) {
 	    		continue;
@@ -97,7 +97,7 @@ class Navigator {
 	    		link_list.push(`<a href='${reqest_url}' ${link_style}>${val_label}</a> `);
 	    		//link_list.push(`<a href='#' onclick='navigate(${next_string})'>${val_label}</a> `);
 	    	}
-	    	const links_string = link_list.join(" | ");
+	    	const links_string = link_list.join(` ${this.get_translation("filterseparator", "|")} `);
 	    	content += `<tr> <td>${option_key}</td> <td>${links_string}</td> </tr>`;
 	    }
 	    content += "</table>";
@@ -107,32 +107,30 @@ class Navigator {
 	/// calculate and present weighted answers
 	generate_results(nav_data) {
 		let content = "";
-	    content += `<div style="font-weight: bold;">${this.get_translation("Results")}:</div>`;
-	    content += `<div style="margin-left: 4px;">`;
+		content += `<table class="resultstable">`;
+		content += `<tr> <th>${this.get_translation("Results")}:</th> <th></th> </tr>`;
 	    if (Object.keys(nav_data).length < 1) {
 			content += this.find_simple_answer();
 	    } else {
 			content += this.find_weighted_answer(nav_data);
 		}
-	    content += `</div>`;
+		content += "</table>";
+// 	    content += `</div>`;
 	    return content;
 	}
 
 	find_simple_answer() {
 	    const answer_list = this.values_dict[this.answer_column];
-	    let content = `<div>`;
+	    let content = "";
 		for (let item_index in answer_list) {
-			content += `<div>`;
 			let item_data = answer_list[item_index];
+			let item_content = item_data;
 			if ( item_data in DETAILS_PAGE ) {
-				const link_href = DETAILS_PAGE[item_data]
-		    	content += `<span><a href="${link_href}">${item_data}</a></span>\n`;
-			} else {
-			    content += `<span>${item_data}</span>\n`;
+				const link_href = DETAILS_PAGE[item_data];
+		    	item_content = `<a href="${link_href}">${item_content}</a>`;
 			}
-			content += `</div>\n`;
+			content += `<tr> <td>${item_content}</td> <td></td> </tr>`;
 	    }
-	    content += `</div>`;
 	    return content;
 	}
 
@@ -162,22 +160,19 @@ class Navigator {
 	    	return -1;
 	    });
 	
-	    let content = `<div>`;
+	    let content = "";
 		for (let item_index in weights_list) {
 			const item_data = weights_list[item_index];
 			const answer_id = item_data[0];
 			const answer_weight = item_data[1];
 			const percent_val = Math.round( answer_weight );
-		    content += `<div>`;
+			let item_content = answer_id;
 			if ( answer_id in DETAILS_PAGE ) {
-				const link_href = DETAILS_PAGE[answer_id]
-		    	content += `<span><a href="${link_href}">${answer_id}</a> (${percent_val}%)</span>\n`;
-			} else {
-			    content += `<span>${answer_id} (${percent_val}%)</span>\n`;
+				const link_href = DETAILS_PAGE[answer_id];
+				item_content = `<a href="${link_href}">${answer_id}</a>`;
 			}
-		    content += `</div>\n`;
+			content += `<tr> <td>${item_content}</td> <td>${percent_val}%</td> </tr>`;
 	    }
-	    content += `</div>`;
 	    return content;
 	}
 
@@ -194,14 +189,20 @@ class Navigator {
 		return url.toString();
 	}
 
-	get_translation(key) {
+	get_translation(key, default_value) {
 		if (typeof this.translation_dict === 'undefined') {
 			/// translation dictionary not given
+			if (typeof default_value !== 'undefined') {
+				return default_value;
+			}
 			return key;
 		}
 		const value = this.translation_dict[key];
 		if (typeof value === 'undefined') {
 			/// translation not set for given key
+			if (typeof default_value !== 'undefined') {
+				return default_value;
+			}
 			return key;
 		}
 		return value;

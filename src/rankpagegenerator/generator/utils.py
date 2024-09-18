@@ -26,13 +26,16 @@ Project is distributed under the BSD 3-Clause license.
 -->"""
 
 
-def dict_to_html_table(data_dict, translation_dict=None, header=True):
+def dict_to_html_table(data_dict, translation_dict=None, header=True, table_class=None):
     if data_dict is None:
         return None
     if translation_dict is None:
         translation_dict = {}
+    table_css = ""
+    if table_class:
+        table_css = """ class='detailstable'"""
     content = ""
-    content += """<table>\n"""
+    content += f"""<table{table_css}>\n"""
     if header:
         content += f"""<tr> <th>{get_translation(translation_dict, "Parameter")}:</th>\
  <th>{get_translation(translation_dict, "Value")}:</th> </tr>\n"""

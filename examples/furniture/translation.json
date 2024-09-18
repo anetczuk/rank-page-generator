@@ -2,6 +2,7 @@
 	"Reset": "-Reset-",
 	"Parameters": "-Parameters-",
 	"Results": "-Results-",
+	"filterseparator": "#",
 
 	"Back to Filters": "-Back to Filters-",
 	"Prev": "-Prev-",
