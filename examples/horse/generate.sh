@@ -65,7 +65,7 @@ if [ -f "$PAGE_PATH" ]; then
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
 fi
 
-PAGE_PATH="$OUT_DIR/pages/0.html"
+PAGE_PATH="$OUT_DIR/subpage/0.html"
 if [ -f "$PAGE_PATH" ]; then
 	OUT_IMG_PATH="$OUT_DIR/sub-page.png"
 	chromium --headless "file://$PAGE_PATH" --screenshot="$OUT_IMG_PATH"
