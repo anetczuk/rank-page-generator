@@ -9,17 +9,13 @@
 
 import os
 import logging
-from typing import Dict
 
 import shutil
-import json
-from pandas.core.frame import DataFrame
 
 from rankpagegenerator.utils import write_data, read_data
-from rankpagegenerator.generator.staticgen import StaticGenerator
 from rankpagegenerator.generator.utils import HTML_LICENSE, dict_to_html_table
+from rankpagegenerator.generator.dataloader import DataLoader
 from rankpagegenerator.data import DATA_DIR
-from rankpagegenerator.dataloader import load_transaltion, get_translation
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -27,57 +23,36 @@ SCRIPT_DIR = os.path.dirname(__file__)
 _LOGGER = logging.getLogger(__name__)
 
 
-def print_info(model_path):
-    model: DataFrame = StaticGenerator.load(model_path)
-    StaticGenerator.print_info(model)
-
-
 def generate_pages(model_path, translation_path, embed, output_path):
-    generate_javascript(model_path, translation_path, embed, output_path)
+    data_loader = DataLoader(model_path, translation_path)
+    generate_javascript(data_loader, embed, output_path)
 
 
 ## ============================================
 
 
-def generate_javascript(model_path, translation_path, embed, output_path):
+def generate_javascript(data_loader: DataLoader, embed, output_path):
     os.makedirs(output_path, exist_ok=True)
 
     navigation_script_path = os.path.join(DATA_DIR, "navigate.js")
     css_styles_path = os.path.join(DATA_DIR, "styles.css")
 
-    translation_dict = load_transaltion(translation_path)
-
-    model: DataFrame = StaticGenerator.load(model_path)
-    config: Dict[str, str] = StaticGenerator.load_config(model_path)
-
-    answer_column_id = config.get("answer_column")
-    if answer_column_id is None:
-        columns = list(model.columns)
-        answer_column_id = columns[0]
+    answer_column_id = data_loader.get_answer_column()
 
     _LOGGER.info("answer column id: %s", answer_column_id)
 
-    page_title = config.get("page_title", "")
+    page_title = data_loader.get_page_title()
     if page_title:
         page_title = f"""<title>{page_title}</title>"""
 
-    model_json = to_json(model)
-    answer_details = StaticGenerator.load_details(model_path)
-    details_json = to_json(answer_details)
-    details_page_dir = generate_answer_details_pages(model_json, details_json, config, translation_dict, output_path)
-
-    weights_dict = StaticGenerator.load_weights(model_path)
-    if weights_dict is None:
-        weights_dict = {}
-
-    options_dict = StaticGenerator.load_values(model_path)
+    details_page_dir = generate_answer_details_pages(data_loader, output_path)
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
-const VALUES_DICT = {options_dict};
+const VALUES_DICT = {data_loader.get_possible_values_dict()};
 const DETAILS_PAGE = {details_page_dir};
-const WEIGHTS_DICT = {weights_dict};
-const TRANSLATION_DICT = {translation_dict};"""
+const WEIGHTS_DICT = {data_loader.weights_dict};
+const TRANSLATION_DICT = {data_loader.translation_dict};"""
 
     page_script_content = ""
     if embed:
@@ -116,7 +91,7 @@ const TRANSLATION_DICT = {translation_dict};"""
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>{get_translation(translation_dict, "Reset")}</a>
+    <a href='?'>{data_loader.get_translation("Reset")}</a>
 </div>
 
 <div id="container"></div>
@@ -131,14 +106,15 @@ const TRANSLATION_DICT = {translation_dict};"""
 
 
 # model_json - list of dicts (key is column name)
-def generate_answer_details_pages(model_json, details_json, config_dict, translation_dict, output_path):
-    if details_json is None:
-        details_json = {}
+def generate_answer_details_pages(data_loader: DataLoader, output_path):
+    model_json = data_loader.get_model_json()
+    translation_dict = data_loader.translation_dict
+
     ## generate answer pages
-    page_title = config_dict.get("page_title", "")
+    page_title = data_loader.get_page_title()
 
     ret_dict = {}
-    pages_dir = "pages"
+    pages_dir = data_loader.config_dict.get("subpage_dir", "pages")
     out_pages_path = os.path.join(output_path, pages_dir)
     os.makedirs(out_pages_path, exist_ok=True)
     answer_counter = 0
@@ -150,7 +126,7 @@ def generate_answer_details_pages(model_json, details_json, config_dict, transla
 
         answer = value_list[0][0]
         details_dict = None
-        for item in details_json:
+        for item in data_loader.details_dict:
             item_detail = list(item.values())  # list of lists
             if item_detail[0][0] == answer:
                 details_dict = item
@@ -164,11 +140,11 @@ def generate_answer_details_pages(model_json, details_json, config_dict, transla
         if curr_page_title:
             curr_page_title = f"""<title>{answer} - {curr_page_title}</title>"""
 
-        prev_link = get_translation(translation_dict, "Prev")
+        prev_link = data_loader.get_translation("Prev")
         if answer_counter > 0:
             prev_href = f"{answer_counter - 1}.html"
             prev_link = f"""<a href="{prev_href}">{prev_link}</a>"""
-        next_link = get_translation(translation_dict, "Next")
+        next_link = data_loader.get_translation("Next")
         if answer_counter < rows_num - 1:
             next_href = f"{answer_counter + 1}.html"
             next_link = f"""<a href="{next_href}">{next_link}</a>"""
@@ -181,7 +157,7 @@ def generate_answer_details_pages(model_json, details_json, config_dict, transla
 </head>
 <body>
 <div>
-<a href="../index.html">{get_translation(translation_dict, "Back to Filters")}</a>
+<a href="../index.html">{data_loader.get_translation("Back to Filters")}</a>
 </div>
 <div class="bottomspace">
 <span>{prev_link}</span> <span>{next_link}</span>
@@ -202,16 +178,3 @@ def generate_answer_details_pages(model_json, details_json, config_dict, transla
         ret_dict[answer] = rel_path
 
     return ret_dict
-
-
-def to_json(content: DataFrame):
-    if content is None:
-        return None
-    json_data_str = content.to_json(orient="records")
-    json_data = json.loads(json_data_str)
-    # ensure every value is list (makes life easier in java script)
-    for row_dict in json_data:
-        for key, val in row_dict.items():
-            if not isinstance(val, list):
-                row_dict[key] = [val]
-    return json_data

@@ -22,7 +22,8 @@ import argparse
 import logging
 
 from rankpagegenerator import logger
-from rankpagegenerator.generator.jsgen import generate_pages, print_info
+from rankpagegenerator.generator.dataloader import DataLoader
+from rankpagegenerator.generator.jsgen import generate_pages
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,6 +39,7 @@ def process_generate(args):
     translation_path = args.translation
     embed = str(args.embedscripts).lower() != "false"
     output_path = args.outdir
+
     generate_pages(model_path, translation_path, embed, output_path)
     return 0
 
@@ -45,7 +47,9 @@ def process_generate(args):
 def process_info(args):
     _LOGGER.debug("logging to file: %s", logger.log_file)
     model_path = args.data
-    print_info(model_path)
+
+    data_loader = DataLoader(model_path)
+    data_loader.print_info()
     return 0
 
 
