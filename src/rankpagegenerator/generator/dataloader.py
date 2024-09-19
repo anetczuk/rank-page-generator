@@ -8,7 +8,6 @@
 
 import logging
 from typing import Dict
-import math
 import json
 
 from pandas.core.frame import DataFrame
@@ -167,10 +166,27 @@ class DataLoader:
         return get_translation(self.translation_dict, key)
 
     def get_total_count(self) -> int:
-        return get_total_count(self.model_data)
+        total_count = 1
+        possible_values = self.get_possible_values_dict()
+        answer_column_id = self.get_answer_column_name()
+        for column_name, values in possible_values.items():
+            if column_name == answer_column_id:
+                continue
+            total_count *= len(values)
+        return total_count
 
     def print_info(self):
-        print_data_info(self.model_data)
+        print(self.model_data)
+        model_values = to_dict_col_vals(self.model_data)
+        cols_list = list(model_values.keys())[1:]
+        for char_name in cols_list:
+            values_set = model_values[char_name]
+            # if "" in values_set:
+            #     values_set.remove("")
+            length = len(values_set)
+            print(f"{char_name}: {length} {values_set}")
+        total_count = self.get_total_count()
+        print("total_count:", total_count)
 
 
 # ===================================================
@@ -182,36 +198,6 @@ def get_translation(translation_dict: Dict[str, str], key: str) -> str:
         return value
     _LOGGER.info("translation not found for '%s'", key)
     return key
-
-
-def get_total_count(model: DataFrame):
-    total_count = 1
-    model_values = to_dict_col_vals(model)
-    cols_list = list(model_values.keys())[1:]
-    for char_name in cols_list:
-        values_set = model_values[char_name]
-        # if "" in values_set:
-        #     values_set.remove("")
-        length = len(values_set)
-        total_count *= length
-    col_len = len(cols_list)
-    total_count *= math.factorial(col_len)
-    # total_count *= col_len
-    return total_count
-
-
-def print_data_info(model):
-    print(model)
-    model_values = to_dict_col_vals(model)
-    cols_list = list(model_values.keys())[1:]
-    for char_name in cols_list:
-        values_set = model_values[char_name]
-        # if "" in values_set:
-        #     values_set.remove("")
-        length = len(values_set)
-        print(f"{char_name}: {length} {values_set}")
-    total_count = get_total_count(model)
-    print("total_count:", total_count)
 
 
 # ================================================================
@@ -334,6 +320,9 @@ def get_indexes(row_values, order_values):
         #     raise
         index_list.append(item_index)
     return index_list
+
+
+# ================================================================
 
 
 def to_json(content: DataFrame):

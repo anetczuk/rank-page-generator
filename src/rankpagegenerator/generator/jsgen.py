@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #
 # Copyright (c) 2024, Arkadiusz Netczuk <dev.arnet@gmail.com>
 # All rights reserved.
@@ -134,6 +133,9 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
                 details_dict.pop(next(iter(details_dict)))  # remove first key
                 data_dict.update(details_dict)
                 break
+
+        for key, val in data_dict.items():
+            data_dict[key] = sorted(val)
 
         characteristics = dict_to_html_table(data_dict, translation_dict)
 

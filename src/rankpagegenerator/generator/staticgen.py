@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 #
 # Copyright (c) 2024, Arkadiusz Netczuk <dev.arnet@gmail.com>
 # All rights reserved.
@@ -33,7 +32,7 @@ def generate_pages(model_path, translation_path, _embed, output_path):
 ##
 ## Generating all possibilities is time consuming.
 ## For n categories there is following number of possibilities:
-##    n! * n1 * n2 * ... * nn
+##    n1 * n2 * ... * nn
 ## where
 ##    n  is number categories
 ##    nx is number of values in category
