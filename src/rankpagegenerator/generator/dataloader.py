@@ -6,9 +6,12 @@
 # LICENSE file in the root directory of this source tree.
 #
 
+import os
 import logging
 from typing import Dict
+import re
 import json
+import shutil
 
 from pandas.core.frame import DataFrame
 
@@ -36,6 +39,7 @@ class DataLoader:
 
         self.weights_dict = None
         self.translation_dict = None
+        self.photos_dict = None
 
         # load data
         self.config_dict = self._load_config()
@@ -148,6 +152,7 @@ class DataLoader:
         return to_json(self.model_data)
 
     def get_possible_values_dict(self):
+        ## returns dict with column names as key and all values from column as value
         options_dict = to_dict_col_vals(self.model_data)
         options_dict.update(self.order_dict)
         return options_dict
@@ -187,6 +192,41 @@ class DataLoader:
             print(f"{char_name}: {length} {values_set}")
         total_count = self.get_total_count()
         print("total_count:", total_count)
+
+    def copy_photos(self, output_path):
+        ret_dict = {}
+        possible_values = self.get_possible_values_dict()
+        answer_column_id = self.get_answer_column_name()
+        answers_list = possible_values.get(answer_column_id)
+        for answer_value in answers_list:
+            photos_data = self.find_photos(answer_value)
+            if photos_data is None:
+                continue
+            answer_value_dir = re.sub(r"\s+", "_", answer_value)
+            img_dest_dir = os.path.join(output_path, "img", answer_value_dir)
+            os.makedirs(img_dest_dir, exist_ok=True)
+            photo_list = []
+            for img_path in photos_data:
+                img_name = os.path.basename(img_path)
+                dest_name = re.sub(r"\s+", "_", img_name)
+                dest_img_path = os.path.join(img_dest_dir, dest_name)
+                shutil.copyfile(img_path, dest_img_path, follow_symlinks=True)
+                photo_list.append((img_path, dest_img_path))
+            ret_dict[answer_value] = photo_list
+        self.photos_dict = ret_dict
+
+    def find_photos(self, answer):
+        model_dir = os.path.dirname(self.model_path)
+        photos_dir = os.path.join(model_dir, "photos", answer)
+        if not os.path.isdir(photos_dir):
+            return None
+        ret_list = []
+        files_list = os.listdir(photos_dir)
+        for file_item in files_list:
+            if file_item.endswith(".lic"):
+                continue
+            ret_list.append(os.path.join(photos_dir, file_item))
+        return ret_list
 
 
 # ===================================================

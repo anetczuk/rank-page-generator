@@ -46,7 +46,7 @@ class Navigator {
 	generate_filter_table(nav_data) {
 		let content = "";
 		content += `<table class="filterstable">`;
-		content += `<tr> <th>${this.get_translation("Parameters")}:</th> <th></th> </tr>`;
+		content += `<tr> <th>${this.get_translation("Parameters")}:</th> </tr>`;
 	    for (let option_key in this.values_dict) {
 	    	if ( option_key == this.answer_column ) {
 	    		continue;
@@ -90,7 +90,7 @@ class Navigator {
 	generate_results(nav_data) {
 		let content = "";
 		content += `<table class="resultstable">`;
-		content += `<tr> <th>${this.get_translation("Results")}:</th> <th></th> </tr>`;
+		content += `<tr> <th>${this.get_translation("Results")}:</th> </tr>`;
 	    if (Object.keys(nav_data).length < 1) {
 			content += this.find_simple_answer();
 	    } else {
@@ -111,7 +111,11 @@ class Navigator {
 				const link_href = DETAILS_PAGE[item_data];
 		    	item_content = `<a href="${link_href}">${item_content}</a>`;
 			}
-			content += `<tr> <td>${item_content}</td> <td></td> </tr>`;
+			let photo_gallery = this.generate_mini_gallery(item_data);
+			if ( photo_gallery !== "" ) {
+				photo_gallery = `<td>${photo_gallery}</td> `;
+			}
+			content += `<tr> <td>${item_content}</td> <td></td> ${photo_gallery}</tr>`;
 	    }
 	    return content;
 	}
@@ -153,9 +157,28 @@ class Navigator {
 				const link_href = DETAILS_PAGE[answer_id];
 				item_content = `<a href="${link_href}">${answer_id}</a>`;
 			}
-			content += `<tr> <td>${item_content}</td> <td>${percent_val}%</td> </tr>`;
+			let photo_gallery = this.generate_mini_gallery(answer_id);
+			if ( photo_gallery !== "" ) {
+				photo_gallery = `<td>${photo_gallery}</td> `;
+			}
+			content += `<tr> <td>${item_content}</td> <td>${percent_val}%</td> ${photo_gallery}</tr>`;
 	    }
 	    return content;
+	}
+
+	generate_mini_gallery(answer_value) {
+		if ( answer_value in PHOTOS_DICT === false ) {
+			return "";
+		}
+		const photos_list = PHOTOS_DICT[answer_value];
+		let content = "";
+		content += "<div class='miniphoto'>";
+		for (let item_index in photos_list) {
+			const item_data = photos_list[item_index];
+			content += `<img src="${item_data}">`;
+		}
+		content += "</div>";
+		return content;
 	}
 
 	make_request_params(data_dict) {

@@ -17,9 +17,12 @@ body {
 .resultstable th {
     text-align: left;
 }
-
 .activeoption {
     color: red !important;
+}
+.miniphoto img {
+	height: 96px;
+	margin-right: 8px;
 }
 
 
@@ -28,4 +31,16 @@ body {
 }
 .empty {
     color: red;
+}
+.photostitle {
+	font-weight: bold;
+}
+.imgtile {
+    width: 512px;
+    float: left;
+    margin-right: 12px;
+    margin-bottom: 12px;
+}
+.imgtile img {
+    width: 512px;
 }

@@ -27,7 +27,7 @@ function test_empty() {
 	let nav = new mod.Navigator(values_dict);
 
 	const response = nav.generate_content();
-	assert_equal(response, `<table class="filterstable"><tr> <th>Parameters:</th> <th></th> </tr></table><table class="resultstable"><tr> <th>Results:</th> <th></th> </tr></table>`);
+	assert_equal(response, `<table class="filterstable"><tr> <th>Parameters:</th> </tr></table><table class="resultstable"><tr> <th>Results:</th> </tr></table>`);
 }
 
 

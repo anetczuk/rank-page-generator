@@ -44,14 +44,25 @@ def generate_javascript(data_loader: DataLoader, embed, output_path):
     if page_title:
         page_title = f"""<title>{page_title}</title>"""
 
-    details_page_dir = generate_answer_details_pages(data_loader, output_path)
+    data_loader.copy_photos(output_path)
+
+    dest_photos_dict = {}
+    for answer, photos_list in data_loader.photos_dict.items():
+        dest_list = []
+        for _img_src, img_dest in photos_list:
+            img_rel_path = os.path.relpath(img_dest, output_path)
+            dest_list.append(img_rel_path)
+        dest_photos_dict[answer] = dest_list
+
+    details_page_dir = generate_details_pages(data_loader, output_path)
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
 const VALUES_DICT = {data_loader.get_possible_values_dict()};
 const DETAILS_PAGE = {details_page_dir};
 const WEIGHTS_DICT = {data_loader.weights_dict};
-const TRANSLATION_DICT = {data_loader.translation_dict};"""
+const TRANSLATION_DICT = {data_loader.translation_dict};
+const PHOTOS_DICT = {dest_photos_dict};"""
 
     page_script_content = ""
     if embed:
@@ -105,7 +116,7 @@ const TRANSLATION_DICT = {data_loader.translation_dict};"""
 
 
 # model_json - list of dicts (key is column name)
-def generate_answer_details_pages(data_loader: DataLoader, output_path):
+def generate_details_pages(data_loader: DataLoader, output_path):
     model_json = data_loader.get_model_json()
     translation_dict = data_loader.translation_dict
     answer_column_id = data_loader.get_answer_column_name()
@@ -137,7 +148,7 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
         for key, val in data_dict.items():
             data_dict[key] = sorted(val)
 
-        characteristics = dict_to_html_table(data_dict, translation_dict)
+        characteristics_content = dict_to_html_table(data_dict, translation_dict)
 
         curr_page_title = page_title
         if curr_page_title:
@@ -152,6 +163,8 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
             next_href = f"{answer_counter + 1}.html"
             next_link = f"""<a href="{next_href}">{next_link}</a>"""
 
+        photos_content = generate_details_photos_content(data_loader, answer_value)
+
         content = f"""<html>
 {HTML_LICENSE}
 <head>
@@ -165,9 +178,10 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
 <div class="bottomspace">
 <span>{prev_link}</span> <span>{next_link}</span>
 </div>
-<div class="characteristics">
-{characteristics}
+<div class="characteristics bottomspace">
+{characteristics_content}
 </div>
+{photos_content}
 </body>
 </html>
 """
@@ -181,3 +195,27 @@ def generate_answer_details_pages(data_loader: DataLoader, output_path):
         ret_dict[answer_value] = rel_path
 
     return ret_dict
+
+
+def generate_details_photos_content(data_loader: DataLoader, answer_value):
+    photos_data = data_loader.photos_dict
+    if photos_data is None:
+        return ""
+    img_list = photos_data.get(answer_value)
+    if img_list is None:
+        return ""
+    content = ""
+    content += """<div class="photosgallery">\n"""
+    content += """<div class="photostitle">Photos:</div>\n"""
+    for img_src, img_dest in img_list:
+        license_path = img_src + ".lic"
+        license_content = ""
+        if os.path.isfile(license_path):
+            license_content = read_data(license_path)
+            license_content = f"""<div class="license"><div>License:</div>{license_content}</div>"""
+        content += """<div class="imgtile">\n"""
+        content += f"""    <img src="{img_dest}">\n"""
+        content += f"""    {license_content}\n"""
+        content += """</div>\n"""
+    content += "</div>"
+    return content
