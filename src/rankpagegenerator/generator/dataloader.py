@@ -9,9 +9,11 @@
 import os
 import logging
 from typing import Dict
+import math
 import re
 import json
 import shutil
+from PIL import Image
 
 from pandas.core.frame import DataFrame
 
@@ -20,6 +22,7 @@ from rankpagegenerator.generator.dataframe import (
     to_dict_from_2col,
     to_dict_col_vals,
     to_flat_list,
+    to_dict_list,
 )
 
 
@@ -96,7 +99,7 @@ class DataLoader:
     def _load_details(self):
         details_data: DataFrame = load_table_from_excel(self.model_path, "Details:", assume_default=False)
         apply_data_types(details_data, self.data_type_dict)
-        details_data = to_json(details_data)
+        details_data = to_dict_list(details_data)
         if details_data is None:
             details_data = {}
         return details_data
@@ -149,7 +152,7 @@ class DataLoader:
             return json.load(fp)
 
     def get_model_json(self):
-        return to_json(self.model_data)
+        return to_dict_list(self.model_data)
 
     def get_possible_values_dict(self):
         ## returns dict with column names as key and all values from column as value
@@ -210,7 +213,7 @@ class DataLoader:
                 img_name = os.path.basename(img_path)
                 dest_name = re.sub(r"\s+", "_", img_name)
                 dest_img_path = os.path.join(img_dest_dir, dest_name)
-                shutil.copyfile(img_path, dest_img_path, follow_symlinks=True)
+                copy_image(img_path, dest_img_path, resize=True)
                 photo_list.append((img_path, dest_img_path))
             ret_dict[answer_value] = photo_list
         self.photos_dict = ret_dict
@@ -362,19 +365,19 @@ def get_indexes(row_values, order_values):
     return index_list
 
 
-# ================================================================
+def copy_image(source_path, dest_path, resize=False):
+    if not resize:
+        shutil.copyfile(source_path, dest_path, follow_symlinks=True)
+        return
 
-
-def to_json(content: DataFrame):
-    ## converts dataframe to list of dicts
-    ## where each list item contains single dataframe row
-    if content is None:
-        return None
-    json_data_str = content.to_json(orient="records")
-    json_data = json.loads(json_data_str)
-    # ensure every value is list (makes life easier in java script)
-    for row_dict in json_data:
-        for key, val in row_dict.items():
-            if not isinstance(val, list):
-                row_dict[key] = [val]
-    return json_data
+    with Image.open(source_path) as src_img:
+        file_area = src_img.size[0] * src_img.size[1]
+        factor = file_area / 1048576  # 1024 x 1024
+        if factor > 1.0:
+            old_size = src_img.size
+            root_factor = math.sqrt(factor)
+            width = int(src_img.size[0] / root_factor)
+            height = int(src_img.size[1] / root_factor)
+            src_img = src_img.resize((width, height), Image.LANCZOS)  # pylint: disable=no-member
+            _LOGGER.debug("image %s resized from %s to %s by factor %s", dest_path, old_size, src_img.size, root_factor)
+        src_img.save(dest_path, optimize=True, quality=50)

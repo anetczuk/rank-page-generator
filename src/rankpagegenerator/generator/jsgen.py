@@ -22,15 +22,15 @@ SCRIPT_DIR = os.path.dirname(__file__)
 _LOGGER = logging.getLogger(__name__)
 
 
-def generate_pages(model_path, translation_path, embed, output_path):
+def generate_pages(model_path, translation_path, embed, nophotos, output_path):
     data_loader = DataLoader(model_path, translation_path)
-    generate_javascript(data_loader, embed, output_path)
+    generate_javascript(data_loader, embed, nophotos, output_path)
 
 
 ## ============================================
 
 
-def generate_javascript(data_loader: DataLoader, embed, output_path):
+def generate_javascript(data_loader: DataLoader, embed, nophotos, output_path):
     os.makedirs(output_path, exist_ok=True)
 
     navigation_script_path = os.path.join(DATA_DIR, "navigate.js")
@@ -44,17 +44,17 @@ def generate_javascript(data_loader: DataLoader, embed, output_path):
     if page_title:
         page_title = f"""<title>{page_title}</title>"""
 
-    data_loader.copy_photos(output_path)
-
     dest_photos_dict = {}
-    for answer, photos_list in data_loader.photos_dict.items():
-        dest_list = []
-        for _img_src, img_dest in photos_list:
-            img_rel_path = os.path.relpath(img_dest, output_path)
-            dest_list.append(img_rel_path)
-        dest_photos_dict[answer] = dest_list
+    if not nophotos:
+        data_loader.copy_photos(output_path)
+        for answer, photos_list in data_loader.photos_dict.items():
+            dest_list = []
+            for _img_src, img_dest in photos_list:
+                img_rel_path = os.path.relpath(img_dest, output_path)
+                dest_list.append(img_rel_path)
+            dest_photos_dict[answer] = dest_list
 
-    details_page_dir = generate_details_pages(data_loader, output_path)
+    details_page_dir = generate_details_pages(data_loader, nophotos, output_path)
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
@@ -116,7 +116,7 @@ const PHOTOS_DICT = {dest_photos_dict};"""
 
 
 # model_json - list of dicts (key is column name)
-def generate_details_pages(data_loader: DataLoader, output_path):
+def generate_details_pages(data_loader: DataLoader, nophotos, output_path):
     model_json = data_loader.get_model_json()
     translation_dict = data_loader.translation_dict
     answer_column_id = data_loader.get_answer_column_name()
@@ -131,12 +131,9 @@ def generate_details_pages(data_loader: DataLoader, output_path):
     answer_counter = 0
     rows_num = len(model_json)
     for row_dict in model_json:
-        field_list = list(row_dict.keys())  # column names
-        value_list = list(row_dict.values())  # values
-        data_dict = dict(zip(field_list, value_list))
+        data_dict = dict(zip(row_dict.keys(), row_dict.values()))
 
         answer_value = row_dict[answer_column_id][0]
-        details_dict = None
         for item in data_loader.details_dict:
             item_detail = list(item.values())  # list of lists
             if item_detail[0][0] == answer_value:
@@ -163,7 +160,9 @@ def generate_details_pages(data_loader: DataLoader, output_path):
             next_href = f"{answer_counter + 1}.html"
             next_link = f"""<a href="{next_href}">{next_link}</a>"""
 
-        photos_content = generate_details_photos_content(data_loader, answer_value)
+        photos_content = ""
+        if not nophotos:
+            photos_content = generate_details_photos_content(data_loader, answer_value)
 
         content = f"""<html>
 {HTML_LICENSE}
@@ -213,6 +212,8 @@ def generate_details_photos_content(data_loader: DataLoader, answer_value):
         if os.path.isfile(license_path):
             license_content = read_data(license_path)
             license_content = f"""<div class="license"><div>License:</div>{license_content}</div>"""
+        else:
+            _LOGGER.warning("unable to find license file for image %s", img_src)
         content += """<div class="imgtile">\n"""
         content += f"""    <img src="{img_dest}">\n"""
         content += f"""    {license_content}\n"""
