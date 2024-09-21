@@ -162,7 +162,7 @@ def generate_details_pages(data_loader: DataLoader, nophotos, output_path):
 
         photos_content = ""
         if not nophotos:
-            photos_content = generate_details_photos_content(data_loader, answer_value)
+            photos_content = generate_details_photos_content(data_loader, answer_value, out_pages_path)
 
         content = f"""<html>
 {HTML_LICENSE}
@@ -196,7 +196,7 @@ def generate_details_pages(data_loader: DataLoader, nophotos, output_path):
     return ret_dict
 
 
-def generate_details_photos_content(data_loader: DataLoader, answer_value):
+def generate_details_photos_content(data_loader: DataLoader, answer_value, out_pages_path):
     photos_data = data_loader.photos_dict
     if photos_data is None:
         return ""
@@ -204,18 +204,21 @@ def generate_details_photos_content(data_loader: DataLoader, answer_value):
     if img_list is None:
         return ""
     content = ""
-    content += """<div class="photosgallery">\n"""
-    content += """<div class="photostitle">Photos:</div>\n"""
+    content += """<div class="photosgallery bottomspace">\n"""
+    content += f"""<div class="photostitle">{data_loader.get_translation("Photos")}:</div>\n"""
     for img_src, img_dest in img_list:
+        img_rel_path = os.path.relpath(img_dest, out_pages_path)
         license_path = img_src + ".lic"
         license_content = ""
         if os.path.isfile(license_path):
             license_content = read_data(license_path)
-            license_content = f"""<div class="license"><div>License:</div>{license_content}</div>"""
+            license_content = (
+                f"""<div class="license"><div>{data_loader.get_translation("License")}:</div>{license_content}</div>"""
+            )
         else:
             _LOGGER.warning("unable to find license file for image %s", img_src)
         content += """<div class="imgtile">\n"""
-        content += f"""    <img src="{img_dest}">\n"""
+        content += f"""    <img src="{img_rel_path}">\n"""
         content += f"""    {license_content}\n"""
         content += """</div>\n"""
     content += "</div>"

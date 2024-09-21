@@ -21,7 +21,7 @@ body {
     color: red !important;
 }
 .miniphoto img {
-	height: 96px;
+	height: 128px;
 	margin-right: 8px;
 }
 
@@ -32,8 +32,12 @@ body {
 .empty {
     color: red;
 }
+.photosgallery {
+	float: left;
+}
 .photostitle {
 	font-weight: bold;
+	margin-bottom: 4px;
 }
 .imgtile {
     width: 512px;
