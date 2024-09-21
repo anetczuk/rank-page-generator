@@ -1,7 +1,25 @@
+/* general styles */
 body {
 	background-color: #ebedef;
 }
 
+table td, table th {
+	padding: 3px;
+	padding-right: 18px;
+}
+
+tr:nth-child(odd)  {background-color: #ebedef}
+tr:nth-child(even) {background-color: #f5f5f5;}
+
+.rowodd {
+	background-color: #ebedef !important;
+}
+.roweven {
+	background-color: #f5f5f5 !important;
+}
+
+
+/* main page styles */
 .mainpage a { color: blue; }         /* Unvisited link  */
 .mainpage a:visited { color: blue; } /* Visited link    */
 .mainpage a:hover { color: blue; }   /* Mouse over link */
@@ -20,12 +38,19 @@ body {
 .activeoption {
     color: red !important;
 }
-.miniphoto img {
+.minigallery img {
 	height: 128px;
 	margin-right: 8px;
 }
 
 
+/* categories pages styles */
+.categoriestable th {
+    text-align: left;
+}
+
+
+/* details pages styles */
 .characteristics th {
     text-align: left;
 }

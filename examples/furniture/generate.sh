@@ -68,14 +68,30 @@ if [ -f "$PAGE_PATH" ]; then
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
 fi
 
-PAGE_PATH="$OUT_DIR/pages/0.html"
+PAGE_PATH="$OUT_DIR/pages/category_0.html"
 if [ -f "$PAGE_PATH" ]; then
-	OUT_IMG_PATH="$OUT_DIR/sub-page.png"
+	OUT_IMG_PATH="$OUT_DIR/category-page.png"
 	chromium --headless --window-size=1920,1080 "file://$PAGE_PATH" --screenshot="$OUT_IMG_PATH"
 	mogrify -trim "$OUT_IMG_PATH"
 	convert -bordercolor \#EBEDEF -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
 	convert "$OUT_IMG_PATH" -strip "$OUT_IMG_PATH"
 	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
+else
+	echo "unable to find file: $PAGE_PATH"
+	exit 1
+fi
+
+PAGE_PATH="$OUT_DIR/pages/match_0.html"
+if [ -f "$PAGE_PATH" ]; then
+	OUT_IMG_PATH="$OUT_DIR/match-page.png"
+	chromium --headless --window-size=1920,1080 "file://$PAGE_PATH" --screenshot="$OUT_IMG_PATH"
+	mogrify -trim "$OUT_IMG_PATH"
+	convert -bordercolor \#EBEDEF -border 20 "$OUT_IMG_PATH" "$OUT_IMG_PATH"
+	convert "$OUT_IMG_PATH" -strip "$OUT_IMG_PATH"
+	exiftool -overwrite_original -all= "$OUT_IMG_PATH"
+else
+	echo "unable to find file: $PAGE_PATH"
+	exit 1
 fi
 
 

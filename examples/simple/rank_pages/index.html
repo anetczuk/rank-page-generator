@@ -11,7 +11,8 @@ Project is distributed under the BSD 3-Clause license.
 <script>
 const ANSWER_COLUMN = "name";
 const VALUES_DICT = {'name': ['dog', 'duck', 'eagle', 'fish'], 'swims': ['no', 'yes'], 'flies': ['no', 'yes']};
-const DETAILS_PAGE = {'dog': 'pages/0.html', 'fish': 'pages/1.html', 'eagle': 'pages/2.html', 'duck': 'pages/3.html'};
+const CATEGORY_PAGE = {'swims': 'pages/category_0.html', 'flies': 'pages/category_1.html'};
+const DETAILS_PAGE = {'dog': 'pages/match_0.html', 'fish': 'pages/match_1.html', 'eagle': 'pages/match_2.html', 'duck': 'pages/match_3.html'};
 const WEIGHTS_DICT = {'dog': {'swims': {'no': 1.0, 'yes': 0.0}, 'flies': {'no': 1.0, 'yes': 0.0}}, 'fish': {'swims': {'no': 0.0, 'yes': 1.0}, 'flies': {'no': 1.0, 'yes': 0.0}}, 'eagle': {'swims': {'no': 1.0, 'yes': 0.0}, 'flies': {'no': 0.0, 'yes': 1.0}}, 'duck': {'swims': {'no': 0.0, 'yes': 1.0}, 'flies': {'no': 0.0, 'yes': 1.0}}};
 const TRANSLATION_DICT = {};
 const PHOTOS_DICT = {};
@@ -39,7 +40,7 @@ function start_navigate() {
 	}
 
     let target = document.getElementById("container");
-    let navigator = new Navigator(VALUES_DICT, WEIGHTS_DICT, DETAILS_PAGE, ANSWER_COLUMN, TRANSLATION_DICT);
+    let navigator = new Navigator(VALUES_DICT, WEIGHTS_DICT, CATEGORY_PAGE, DETAILS_PAGE, ANSWER_COLUMN, TRANSLATION_DICT);
     target.innerHTML = navigator.generate_content(nav_data);
 }
 
@@ -48,9 +49,10 @@ function start_navigate() {
 
 
 class Navigator {
-	constructor(values_dict, weights_dict, detail_pages, answer_column, translation_dict) {
+	constructor(values_dict, weights_dict, category_pages, detail_pages, answer_column, translation_dict) {
 		this.values_dict = values_dict;
 		this.weights_dict = weights_dict;
+		this.category_pages = category_pages;
 		this.detail_pages = detail_pages;
 		this.answer_column = answer_column;
 		this.translation_dict = translation_dict;
@@ -64,12 +66,19 @@ class Navigator {
 	
 	generate_filter_table(nav_data) {
 		let content = "";
-		content += `<table class="filterstable">`;
+		content += `<table cellspacing="0" class="filterstable">`;
 		content += `<tr> <th>${this.get_translation("Parameters")}:</th> </tr>`;
 	    for (let option_key in this.values_dict) {
 	    	if ( option_key == this.answer_column ) {
 	    		continue;
 	    	}
+
+			let category_content = option_key;
+			if ( option_key in CATEGORY_PAGE ) {
+				const link_href = CATEGORY_PAGE[option_key];
+		    	category_content = `<a href="${link_href}">${category_content}</a>`;
+			}
+
 	    	const nav_value = nav_data[option_key];
 	    	let option_values = this.values_dict[option_key];
 			let link_list = [];
@@ -85,7 +94,6 @@ class Navigator {
 		    		next_nav[ option_key ] = option_val;
 	    		}
 	    		
-	    		const next_string = JSON.stringify(next_nav);
 	    		let val_label = option_val;
 	    		if ( val_label === "" ) {
 	    			val_label = `[${this.get_translation("empty")}]`;
@@ -96,10 +104,10 @@ class Navigator {
 	    			link_style = `class="activeoption"`;
 	    		}
 	    		link_list.push(`<a href='${reqest_url}' ${link_style}>${val_label}</a> `);
-	    		//link_list.push(`<a href='#' onclick='navigate(${next_string})'>${val_label}</a> `);
 	    	}
+
 	    	const links_string = link_list.join(` ${this.get_translation("filterseparator", "|")} `);
-	    	content += `<tr> <td>${option_key}</td> <td>${links_string}</td> </tr>`;
+	    	content += `<tr> <td>${category_content}</td> <td>${links_string}</td> </tr>`;
 	    }
 	    content += "</table>";
 	    return content;
@@ -108,7 +116,7 @@ class Navigator {
 	/// calculate and present weighted answers
 	generate_results(nav_data) {
 		let content = "";
-		content += `<table class="resultstable">`;
+		content += `<table cellspacing="0" class="resultstable">`;
 		content += `<tr> <th>${this.get_translation("Results")}:</th> </tr>`;
 	    if (Object.keys(nav_data).length < 1) {
 			content += this.find_simple_answer();
@@ -191,7 +199,7 @@ class Navigator {
 		}
 		const photos_list = PHOTOS_DICT[answer_value];
 		let content = "";
-		content += "<div class='miniphoto'>";
+		content += "<div class='minigallery'>";
 		for (let item_index in photos_list) {
 			const item_data = photos_list[item_index];
 			content += `<img src="${item_data}">`;
@@ -250,7 +258,7 @@ exports.Navigator = Navigator;
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>Reset</a>
+    <a href='?'>Reset filters</a>
 </div>
 
 <div id="container"></div>

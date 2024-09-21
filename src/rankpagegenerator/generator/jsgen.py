@@ -54,12 +54,15 @@ def generate_javascript(data_loader: DataLoader, embed, nophotos, output_path):
                 dest_list.append(img_rel_path)
             dest_photos_dict[answer] = dest_list
 
-    details_page_dir = generate_details_pages(data_loader, nophotos, output_path)
+    details_page_dict = generate_details_pages(data_loader, nophotos, output_path)
+
+    category_page_dict = generate_category_pages(data_loader, details_page_dict, dest_photos_dict, output_path)
 
     script_data_content = f"""\
 const ANSWER_COLUMN = "{answer_column_id}";
 const VALUES_DICT = {data_loader.get_possible_values_dict()};
-const DETAILS_PAGE = {details_page_dir};
+const CATEGORY_PAGE = {category_page_dict};
+const DETAILS_PAGE = {details_page_dict};
 const WEIGHTS_DICT = {data_loader.weights_dict};
 const TRANSLATION_DICT = {data_loader.translation_dict};
 const PHOTOS_DICT = {dest_photos_dict};"""
@@ -101,7 +104,7 @@ const PHOTOS_DICT = {dest_photos_dict};"""
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>{data_loader.get_translation("Reset")}</a>
+    <a href='?'>{data_loader.get_translation("Reset filters")}</a>
 </div>
 
 <div id="container"></div>
@@ -113,6 +116,9 @@ const PHOTOS_DICT = {dest_photos_dict};"""
     out_index_path = os.path.join(output_path, "index.html")
     _LOGGER.info("writing index page to %s", out_index_path)
     write_data(out_index_path, content)
+
+
+## ============================================
 
 
 # model_json - list of dicts (key is column name)
@@ -131,7 +137,7 @@ def generate_details_pages(data_loader: DataLoader, nophotos, output_path):
     answer_counter = 0
     rows_num = len(model_json)
     for row_dict in model_json:
-        data_dict = dict(zip(row_dict.keys(), row_dict.values()))
+        data_dict = row_dict.copy()
 
         answer_value = row_dict[answer_column_id][0]
         for item in data_loader.details_dict:
@@ -184,7 +190,7 @@ def generate_details_pages(data_loader: DataLoader, nophotos, output_path):
 </body>
 </html>
 """
-        page_name = f"{answer_counter}.html"
+        page_name = f"match_{answer_counter}.html"
         out_answer_path = os.path.join(out_pages_path, page_name)
         _LOGGER.info("writing page to %s", out_answer_path)
         write_data(out_answer_path, content)
@@ -223,3 +229,110 @@ def generate_details_photos_content(data_loader: DataLoader, answer_value, out_p
         content += """</div>\n"""
     content += "</div>"
     return content
+
+
+# ==================================================================
+
+
+def generate_category_pages(data_loader: DataLoader, details_page_dict, dest_photos_dict, output_path):
+    ret_dict = {}
+
+    answer_col_name = data_loader.get_answer_column_name()
+    columns_list = list(data_loader.model_data.columns)
+    pages_dir = data_loader.config_dict.get("subpage_dir", "pages")
+    out_pages_path = os.path.join(output_path, pages_dir)
+    os.makedirs(out_pages_path, exist_ok=True)
+
+    answer_counter = 0
+    # iteate through column names - for each generate separate page
+    for column_name in columns_list:
+        if column_name == answer_col_name:
+            continue
+
+        page_name = f"category_{answer_counter}.html"
+        out_answer_path = os.path.join(out_pages_path, page_name)
+        generate_category_single_page(data_loader, details_page_dict, dest_photos_dict, column_name, out_answer_path)
+
+        answer_counter += 1
+        rel_path = os.path.join(pages_dir, page_name)
+        ret_dict[column_name] = rel_path
+    return ret_dict
+
+
+def generate_category_single_page(
+    data_loader: DataLoader, details_page_dict, dest_photos_dict, column_name, out_answer_path
+):
+    page_title = data_loader.get_page_title()
+    answer_col_name = data_loader.get_answer_column_name()
+    values_dict = data_loader.get_possible_values_dict()
+
+    curr_page_title = page_title
+    if curr_page_title:
+        curr_page_title = f"""<title>{column_name} - {curr_page_title}</title>"""
+
+    # generate categories table
+    categories_content = """<table cellspacing="0" class="categoriestable">\n"""
+    categories_content += f"""<tr> <th>{column_name}:</th> </tr>\n"""
+    vales_list = values_dict.get(column_name)
+    for col_val_index, col_value in enumerate(vales_list):
+        # get answers matching column value
+        found_items = []
+        model_dict_list = data_loader.get_model_json()
+        for data_row in model_dict_list:
+            data_values = data_row.get(column_name)
+            if data_values is None:
+                continue
+            if col_value in data_values:
+                answer_values = data_row.get(answer_col_name)
+                found_items.extend(answer_values)
+
+        for answer_index, answer_value in enumerate(found_items):
+            answer_item = details_page_dict.get(answer_value)
+            if answer_item is None:
+                answer_item = answer_value
+            else:
+                answer_item = f"""<a href="../{answer_item}">{answer_value}</a>"""
+
+            gallery = ""
+            answer_images = dest_photos_dict.get(answer_value)
+            if answer_images:
+                gallery += """<div class='minigallery'>"""
+                for image in answer_images:
+                    gallery += f"""<img src="../{image}">"""
+                gallery += """</div>"""
+
+            if answer_index == 0:
+                answer_num = len(found_items)
+                first_column = f"""<td rowspan='{answer_num}'>{col_value}</td>"""
+            else:
+                first_column = ""
+
+            row_class = ""
+            if (col_val_index + answer_index) % 2 == 0:
+                row_class = "roweven"
+            else:
+                row_class = "rowodd"
+            categories_content += (
+                f"""<tr class="{row_class}"> {first_column} <td>{answer_item}</td> <td>{gallery}</td> </tr>\n"""
+            )
+    categories_content += """</table>\n"""
+
+    content = ""
+    content += f"""<html>
+<head>
+{curr_page_title}
+<link rel="stylesheet" type="text/css" href="../styles.css">
+</head>
+<body>
+<div class="bottomspace">
+<a href="../index.html">{data_loader.get_translation("Back to Filters")}</a>
+</div>
+<div class="categories bottomspace">
+{categories_content}
+</div>
+</body>
+</html>
+"""
+
+    _LOGGER.info("writing page to %s", out_answer_path)
+    write_data(out_answer_path, content)

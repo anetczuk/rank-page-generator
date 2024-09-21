@@ -10,9 +10,10 @@ Project is distributed under the BSD 3-Clause license.
 <script>
 const ANSWER_COLUMN = "name";
 const VALUES_DICT = {'num_of_legs': [3, 4], 'back': ['no', 'yes'], 'name': ['chair', 'stool', 'table']};
-const DETAILS_PAGE = {'table': 'pages/0.html', 'chair': 'pages/1.html', 'stool': 'pages/2.html'};
+const CATEGORY_PAGE = {'num_of_legs': 'pages/category_0.html', 'back': 'pages/category_1.html'};
+const DETAILS_PAGE = {'table': 'pages/match_0.html', 'chair': 'pages/match_1.html', 'stool': 'pages/match_2.html'};
 const WEIGHTS_DICT = {'table': {'num_of_legs': {3: 0.0, 4: 1.0}, 'back': {'no': 1.0, 'yes': 0.0}}, 'chair': {'num_of_legs': {3: 0.0, 4: 1.0}, 'back': {'no': 0.0, 'yes': 1.0}}, 'stool': {'num_of_legs': {3: 1.0, 4: 0.0}, 'back': {'no': 1.0, 'yes': 0.0}}};
-const TRANSLATION_DICT = {'Reset': '-Reset-', 'Parameters': '-Parameters-', 'Results': '-Results-', 'filterseparator': '#', 'Back to Filters': '-Back to Filters-', 'Prev': '-Prev-', 'Next': '-Next-', 'Parameter': '-Parameter-', 'Value': '-Value-', 'empty': '-empty-', 'Photos': '-Photos-', 'License': '-License-'};
+const TRANSLATION_DICT = {'Reset filters': '-Reset filters-', 'Parameters': '-Parameters-', 'Results': '-Results-', 'filterseparator': '#', 'Back to Filters': '-Back to Filters-', 'Prev': '-Prev-', 'Next': '-Next-', 'Parameter': '-Parameter-', 'Value': '-Value-', 'empty': '-empty-', 'Photos': '-Photos-', 'License': '-License-'};
 const PHOTOS_DICT = {};
 </script>
 
@@ -22,7 +23,7 @@ const PHOTOS_DICT = {};
 <body class="mainpage" onload="start_navigate()">
 
 <div class="bottomspace">
-    <a href='?'>-Reset-</a>
+    <a href='?'>-Reset filters-</a>
 </div>
 
 <div id="container"></div>

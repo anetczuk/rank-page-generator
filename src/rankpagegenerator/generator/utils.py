@@ -34,7 +34,7 @@ def dict_to_html_table(data_dict, translation_dict=None, header=True, table_clas
     if table_class:
         table_css = """ class='detailstable'"""
     content = ""
-    content += f"""<table{table_css}>\n"""
+    content += f"""<table cellspacing="0"{table_css}>\n"""
     if header:
         content += f"""<tr> <th>{get_translation(translation_dict, "Parameter")}:</th>\
  <th>{get_translation(translation_dict, "Value")}:</th> </tr>\n"""

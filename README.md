@@ -9,12 +9,17 @@ In `/examples` there are few examples of how to use the tool and what are result
 
 Few samples are presented below:
 
+- main page without any selected filter:
 [![main page with available filters](examples/horse/rank_pages/main-page.png "main page with available filters")](examples/horse/rank_pages/main-page.png)
-[![main page with filtered content](examples/horse/rank_pages/main-page-filter.png "main page with filtered content")](examples/horse/rank_pages/main-page-filter.png)
-[![details of result](examples/horse/rank_pages/sub-page.png "details of result")](examples/horse/rank_pages/sub-page.png)
 
-First image presents main page without any selected filter. On second image there is main page with selected filters and
-results with calculated match precentage. Last image presents details page of *horse* item.
+- main page with selected filters and results with calculated match precentage:
+[![main page with filtered content](examples/horse/rank_pages/main-page-filter.png "main page with filtered content")](examples/horse/rank_pages/main-page-filter.png)
+
+- page of *horn* category with results by category value:
+[![results by category value](examples/horse/rank_pages/category-page.png "results by category value")](examples/horse/rank_pages/category-page.png)
+
+- details page of *horse* item:
+[![details of result](examples/horse/rank_pages/match-page.png "details of result")](examples/horse/rank_pages/match-page.png)
 
 
 ## Running
