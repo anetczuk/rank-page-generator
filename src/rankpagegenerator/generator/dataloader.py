@@ -49,6 +49,7 @@ class DataLoader:
         self.data_type_dict = self._load_data_types()
         self.order_dict = self._load_order()
         self.model_data = self._load_data()
+        self._sort_model_data()
         self.details_dict = self._load_details()
 
         self.weights_dict = self._load_weights()
@@ -95,6 +96,10 @@ class DataLoader:
         model_data: DataFrame = load_table_from_excel(self.model_path, "Data:", assume_default=True)
         apply_data_types(model_data, self.data_type_dict)
         return model_data
+
+    def _sort_model_data(self):
+        sort_column = self.get_answer_column_name()
+        self.model_data = self.model_data.sort_values(sort_column)
 
     def _load_details(self):
         details_data: DataFrame = load_table_from_excel(self.model_path, "Details:", assume_default=False)
