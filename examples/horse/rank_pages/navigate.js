@@ -182,7 +182,7 @@ class Navigator {
 		content += "<div class='minigallery'>";
 		for (let item_index in photos_list) {
 			const item_data = photos_list[item_index];
-			content += `<img src="${item_data}">`;
+			content += `<a href="${item_data}"><img src="${item_data}"></a>`;
 		}
 		content += "</div>";
 		return content;

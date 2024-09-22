@@ -210,7 +210,7 @@ def generate_details_photos_content(data_loader: DataLoader, answer_value, out_p
     if img_list is None:
         return ""
     content = ""
-    content += """<div class="photosgallery bottomspace">\n"""
+    content += """<div class="photogallery bottomspace">\n"""
     content += f"""<div class="photostitle">{data_loader.get_translation("Photos")}:</div>\n"""
     for img_src, img_dest in img_list:
         img_rel_path = os.path.relpath(img_dest, out_pages_path)
@@ -224,7 +224,7 @@ def generate_details_photos_content(data_loader: DataLoader, answer_value, out_p
         else:
             _LOGGER.warning("unable to find license file for image %s", img_src)
         content += """<div class="imgtile">\n"""
-        content += f"""    <img src="{img_rel_path}">\n"""
+        content += f"""    <a href="{img_rel_path}"><img src="{img_rel_path}"></a>\n"""
         content += f"""    {license_content}\n"""
         content += """</div>\n"""
     content += "</div>"
@@ -273,8 +273,8 @@ def generate_category_single_page(
     # generate categories table
     categories_content = """<table cellspacing="0" class="categoriestable">\n"""
     categories_content += f"""<tr> <th>{column_name}:</th> </tr>\n"""
-    vales_list = values_dict.get(column_name)
-    for col_val_index, col_value in enumerate(vales_list):
+    col_values_list = values_dict.get(column_name)
+    for col_val_index, col_value in enumerate(col_values_list):
         # get answers matching column value
         found_items = []
         model_dict_list = data_loader.get_model_json()
@@ -298,7 +298,8 @@ def generate_category_single_page(
             if answer_images:
                 gallery += """<div class='minigallery'>"""
                 for image in answer_images:
-                    gallery += f"""<img src="../{image}">"""
+                    img_path = f"../{image}"
+                    gallery += f"""<a href="{img_path}"><img src="{img_path}"></a>"""
                 gallery += """</div>"""
 
             if answer_index == 0:
@@ -315,6 +316,16 @@ def generate_category_single_page(
             categories_content += (
                 f"""<tr class="{row_class}"> {first_column} <td>{answer_item}</td> <td>{gallery}</td> </tr>\n"""
             )
+
+        if len(found_items) < 1:
+            # no results for given value
+            first_column = f"""<td rowspan='1'>{col_value}</td>"""
+            row_class = ""
+            if (col_val_index) % 2 == 0:
+                row_class = "roweven"
+            else:
+                row_class = "rowodd"
+            categories_content += f"""<tr class="{row_class}"> {first_column} <td></td> <td></td> </tr>\n"""
     categories_content += """</table>\n"""
 
     content = ""
