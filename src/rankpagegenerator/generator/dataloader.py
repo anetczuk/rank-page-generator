@@ -13,6 +13,7 @@ import math
 import re
 import json
 import shutil
+import validators
 from PIL import Image
 
 from pandas.core.frame import DataFrame
@@ -152,7 +153,7 @@ class DataLoader:
 
     def _load_transaltion(self) -> Dict[str, str]:
         if not self.translation_path:
-            return {}
+            return None
         with open(self.translation_path, "r", encoding="utf8") as fp:
             return json.load(fp)
 
@@ -166,7 +167,8 @@ class DataLoader:
         return options_dict
 
     def get_page_title(self):
-        return self.config_dict.get("page_title", "")
+        page_title = self.config_dict.get("page_title", "")
+        return self.get_translation(page_title)
 
     def get_answer_column_name(self):
         answer_column_id = self.config_dict.get("answer_column")
@@ -175,8 +177,8 @@ class DataLoader:
         columns = list(self.model_data.columns)
         return columns[0]
 
-    def get_translation(self, key: str) -> str:
-        return get_translation(self.translation_dict, key)
+    def get_translation(self, key: str, group: str = None) -> str:
+        return get_translation(self.translation_dict, key, group)
 
     def get_total_count(self) -> int:
         total_count = 1
@@ -240,12 +242,23 @@ class DataLoader:
 # ===================================================
 
 
-def get_translation(translation_dict: Dict[str, str], key: str) -> str:
+def get_translation(translation_dict: Dict[str, str], key: str, group: str = None) -> str:
+    if translation_dict is None:
+        return key
+    if is_url(key):
+        return key
+    if group is not None:
+        group_dict = translation_dict.get(group)
+        return get_translation(group_dict, key)
     value = translation_dict.get(key)
     if value is not None:
         return value
-    _LOGGER.info("translation not found for '%s'", key)
+    _LOGGER.warning("translation not found for '%s'", key)
     return key
+
+
+def is_url(value):
+    return validators.url(value)
 
 
 # ================================================================

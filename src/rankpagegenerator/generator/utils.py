@@ -8,9 +8,8 @@
 
 import os
 import logging
-import validators
 
-from rankpagegenerator.generator.dataloader import get_translation
+from rankpagegenerator.generator.dataloader import get_translation, is_url
 
 
 SCRIPT_DIR = os.path.dirname(__file__)
@@ -28,8 +27,6 @@ Project is distributed under the BSD 3-Clause license.
 def dict_to_html_table(data_dict, translation_dict=None, header=True, table_class=None):
     if data_dict is None:
         return None
-    if translation_dict is None:
-        translation_dict = {}
     table_css = ""
     if table_class:
         table_css = """ class='detailstable'"""
@@ -53,6 +50,6 @@ def dict_to_html_table(data_dict, translation_dict=None, header=True, table_clas
 
 
 def convert_href_value(val):
-    if validators.url(val):
+    if is_url(val):
         return f"""<a href="{val}">{val}</a>"""
     return str(val)

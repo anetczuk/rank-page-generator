@@ -74,6 +74,7 @@ class Navigator {
 	    	}
 
 			let category_content = option_key;
+			category_content = this.get_translation(category_content, "category");
 			if ( option_key in CATEGORY_PAGE ) {
 				const link_href = CATEGORY_PAGE[option_key];
 		    	category_content = `<a href="${link_href}">${category_content}</a>`;
@@ -95,6 +96,7 @@ class Navigator {
 	    		}
 	    		
 	    		let val_label = option_val;
+	    		val_label = this.get_translation(val_label, "category");
 	    		if ( val_label === "" ) {
 	    			val_label = `[${this.get_translation("empty")}]`;
 	    		}
@@ -106,7 +108,11 @@ class Navigator {
 	    		link_list.push(`<a href='${reqest_url}' ${link_style}>${val_label}</a> `);
 	    	}
 
-	    	const links_string = link_list.join(` ${this.get_translation("filterseparator", "|")} `);
+			let separator = this.get_translation("filterseparator");
+			if ( separator === "filterseparator" ) {
+				separator = "|";
+			}
+	    	const links_string = link_list.join(` ${separator} `);
 	    	content += `<tr> <td>${category_content}</td> <td>${links_string}</td> </tr>`;
 	    }
 	    content += "</table>";
@@ -221,25 +227,29 @@ class Navigator {
 		return url.toString();
 	}
 
-	get_translation(key, default_value) {
-		if (typeof this.translation_dict === 'undefined') {
-			/// translation dictionary not given
-			if (typeof default_value !== 'undefined') {
-				return default_value;
-			}
-			return key;
-		}
-		const value = this.translation_dict[key];
-		if (typeof value === 'undefined') {
-			/// translation not set for given key
-			if (typeof default_value !== 'undefined') {
-				return default_value;
-			}
-			return key;
-		}
-		return value;
+	get_translation(key, group) {
+		return get_translation(this.translation_dict, key, group);
 	}
 
+}
+
+
+function get_translation(translation_dict, key, group) {
+	if (typeof translation_dict === 'undefined') {
+		/// translation dictionary not given
+		return key;
+	}
+	if (typeof group !== 'undefined') {
+		const group_dict = translation_dict[group];
+		return get_translation(group_dict, key);
+	}
+	///
+	const value = translation_dict[key];
+	if (typeof value !== 'undefined') {
+		return value;
+	}
+	/// translation not set for given key
+	return key;
 }
 
 
@@ -249,7 +259,9 @@ function deep_copy(data) {
 
 
 /// exporting required by unit tests
-exports.Navigator = Navigator;
+if (typeof exports !== 'undefined') {
+	exports.Navigator = Navigator;
+}
 
 </script>
 
