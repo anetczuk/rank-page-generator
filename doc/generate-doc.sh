@@ -11,32 +11,38 @@ SRC_DIR="$SCRIPT_DIR/../src"
 
 
 generate_tools_help() {
-    HELP_PATH="$SCRIPT_DIR/cmdargs.md"
+    HELP_MD_PATH="$SCRIPT_DIR/cmdargs.md"
+    HELP_TXT_PATH="$SCRIPT_DIR/cmdargs.txt"
 
     COMMAND="python3 -m rankpagegenerator.main"
     COMMAND_TEXT="$COMMAND"
 
-    echo "## <a name=\"main_help\"></a> $COMMAND_TEXT --help" > "${HELP_PATH}"
-    echo -e "\`\`\`" >> "${HELP_PATH}"
+    echo "## <a name=\"main_help\"></a> $COMMAND_TEXT --help" > "${HELP_MD_PATH}"
+    echo -e "\`\`\`" >> "${HELP_MD_PATH}"
 
     cd "$SRC_DIR"
-    $COMMAND --help >> "${HELP_PATH}"
+    $COMMAND --help >> "${HELP_MD_PATH}"
+    $COMMAND --help > "${HELP_TXT_PATH}"
 
-    echo -e "\`\`\`" >> "${HELP_PATH}"
+    echo -e "\`\`\`" >> "${HELP_MD_PATH}"
 
+	FAILED=0
+    tools=$($COMMAND --listtools 2> /dev/null) || FAILED=1
 
-    tools=$($COMMAND --listtools)
-
-    IFS=', ' read -r -a tools_list <<< "$tools"
-
-    for item in "${tools_list[@]}"; do
-        echo "checking tool: $item"
-        echo -e "\n\n" >> "${HELP_PATH}"
-        echo "## <a name=\"${item}_help\"></a> $COMMAND_TEXT $item --help" >> "${HELP_PATH}"
-        echo -e "\`\`\`" >> "${HELP_PATH}"
-        $COMMAND "$item" --help >> "${HELP_PATH}"
-        echo -e "\`\`\`"  >> "${HELP_PATH}"
-    done
+	if [ $FAILED -eq 0 ]; then
+	    IFS=', ' read -r -a tools_list <<< "$tools"
+	
+	    for item in "${tools_list[@]}"; do
+	        echo "checking tool: $item"
+	        echo -e "\n\n" >> "${HELP_MD_PATH}"
+	        echo "## <a name=\"${item}_help\"></a> $COMMAND_TEXT $item --help" >> "${HELP_MD_PATH}"
+	        echo -e "\`\`\`" >> "${HELP_MD_PATH}"
+	        $COMMAND "$item" --help >> "${HELP_MD_PATH}"
+	        echo -e "\`\`\`"  >> "${HELP_MD_PATH}"
+	    done
+	else
+		echo "no --listtools found"
+    fi
 }
 
 

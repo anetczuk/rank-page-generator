@@ -58,9 +58,9 @@ VENV_DIR=$(realpath "$VENV_DIR")
 
 echo "Creating virtual environment in $VENV_DIR"
 
-python3.8 -m venv "$VENV_DIR"
-# python3 -m venv $VENV_DIR
-# python2 -m virtualenv $VENV_DIR
+python3 -m venv "$VENV_DIR"
+# python3.8 -m venv "$VENV_DIR"
+# python2 -m virtualenv "$VENV_DIR"
 
 
 ### creating venv start script

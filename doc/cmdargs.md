@@ -5,7 +5,7 @@ usage: python3 -m rankpagegenerator.main [-h] [-la] [--listtools]
 
 generate static pages containing rank search based on defined model
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -la, --logall         Log all messages (default: False)
   --listtools           List tools (default: False)
@@ -32,7 +32,7 @@ usage: python3 -m rankpagegenerator.main generate [-h] [-d DATA]
 
 generate rank static pages
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -d DATA, --data DATA  Path to data file with model (default: None)
   -t TRANSLATION, --translation TRANSLATION
@@ -51,7 +51,7 @@ usage: python3 -m rankpagegenerator.main info [-h] [-d DATA]
 
 print model info
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -d DATA, --data DATA  Path to data file with model (default: None)
 ```
@@ -65,7 +65,7 @@ usage: python3 -m rankpagegenerator.main preparephotos [-h] -lf LICENSEFILE
 
 parse license file and prepare photos
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -lf LICENSEFILE, --licensefile LICENSEFILE
                         Path to license file (default: None)

@@ -1,0 +1,18 @@
+usage: python3 -m rankpagegenerator.main [-h] [-la] [--listtools]
+                                         {generate,info,preparephotos} ...
+
+generate static pages containing rank search based on defined model
+
+options:
+  -h, --help            show this help message and exit
+  -la, --logall         Log all messages (default: False)
+  --listtools           List tools (default: False)
+
+subcommands:
+  use one of tools
+
+  {generate,info,preparephotos}
+                        one of tools
+    generate            generate rank static pages
+    info                print model info
+    preparephotos       parse license file and prepare photos
