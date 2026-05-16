@@ -8,7 +8,7 @@
 
 import os
 import logging
-from typing import Dict
+from typing import Dict, Any
 import math
 import re
 import json
@@ -242,13 +242,13 @@ class DataLoader:
 # ===================================================
 
 
-def get_translation(translation_dict: Dict[str, str], key: str, group: str = None) -> str:
+def get_translation(translation_dict: Dict[str, Any], key: str, group: str = None) -> str:
     if translation_dict is None:
         return key
     if is_url(key):
         return key
     if group is not None:
-        group_dict = translation_dict.get(group)
+        group_dict: Dict[str, str] = translation_dict.get(group)
         return get_translation(group_dict, key)
     value = translation_dict.get(key)
     if value is not None:
@@ -365,7 +365,7 @@ def calculate_single_weight(order_item, row_values, order_values):
     item_indexes = get_indexes([order_item], order_values)
     row_indexes = get_indexes(row_values, order_values)
     item_index = item_indexes[0]
-    distance = min([abs(item_index - row_index) for row_index in row_indexes])
+    distance = min(abs(item_index - row_index) for row_index in row_indexes)
     order_len = len(order_values)
     return 1.0 - distance / order_len
 
